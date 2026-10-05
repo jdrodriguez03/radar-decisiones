@@ -1,0 +1,12 @@
+streamlit
+pandas
+pyarrow
+openpyxl
+plotly
+scipy
+scikit-learn
+anthropic
+pydantic
+pyyaml
+pytest
+ruff

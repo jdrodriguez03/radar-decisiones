@@ -1,0 +1,30 @@
+# Cada carpeta tiene un solo dueño. Reemplaza los usuarios de GitHub.
+# A = Aleja, B = Gaby, C = Julian, D = Juanes
+
+/app.py                          @USUARIO_GABY
+/.streamlit/config.toml          @USUARIO_GABY
+/ui/tema.py                      @USUARIO_GABY
+/ui/controles.py                 @USUARIO_GABY
+/ui/comparativo.py               @USUARIO_GABY
+
+/motor/                          @USUARIO_ALEJA
+/motor/pesos.py                  @USUARIO_JUANES
+/scripts/preparar_datos.py       @USUARIO_ALEJA
+/scripts/verificar_demo.py       @USUARIO_ALEJA
+/ui/escenarios.py                @USUARIO_ALEJA
+
+/ia/                             @USUARIO_JULIAN
+/ui/explicacion.py               @USUARIO_JULIAN
+/scripts/generar_cache.py        @USUARIO_JULIAN
+
+/contrato/modelo.py              @USUARIO_JUANES
+/ui/selector.py                  @USUARIO_JUANES
+/ui/supuestos.py                 @USUARIO_JUANES
+/ui/procedencia.py               @USUARIO_JUANES
+/ui/historial.py                 @USUARIO_JUANES
+/scripts/correr_combinaciones.py @USUARIO_JUANES
+/tests/fixtures/                 @USUARIO_JUANES
+/pruebas/                        @USUARIO_JUANES
+
+# Todo lo demás (raíz, .github, config.py, docs generales)
+*                                @USUARIO_JULIAN
