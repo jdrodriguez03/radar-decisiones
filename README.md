@@ -12,7 +12,7 @@ cp .streamlit/secrets.toml.example .streamlit/secrets.toml   # y poner la llave 
 ```
 
 ## Datos
-Copiar `BASE_REDUCIDA_v2.xlsx` desde la carpeta del equipo a `data/raw/` (no se sube a git). Luego: `python scripts/preparar_datos.py`.
+Las bases (`BASE_HISTORICA.xlsx` y `BASE_REDUCIDA_v2.xlsx`) ya vienen en `data/raw/` con el repositorio, anonimizadas. Para generar los datos de la app: `python scripts/preparar_datos.py`.
 
 ## Comandos
 - `streamlit run app.py`: abre la app

@@ -10,13 +10,14 @@ __pycache__/
 .streamlit/secrets.toml
 .env
 
-# Datos originales: se comparten por la carpeta del equipo, no por git
-data/raw/*
-!data/raw/.gitkeep
-*.xlsx
 
 # Sistema y editores
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+
+# Excel: se ignoran todos, menos las dos bases del proyecto
+*.xlsx
+!data/raw/BASE_HISTORICA.xlsx
+!data/raw/BASE_REDUCIDA_v2.xlsx

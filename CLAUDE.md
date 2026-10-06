@@ -7,7 +7,7 @@ Proyecto: Radar de Decisiones (Streamlit). El motor compara empresas reales; la 
 - `ia/` explica. No calcula empresas.
 - `ui/` dibuja. No tiene fórmulas de negocio.
 - `contrato/` define el JSON; `contrato/fixtures/` tiene 5 ejemplos para probar.
-- `data/raw/` (el xlsx, no se sube) y `data/processed/` (parquet, supuestos y caché).
+- `data/raw/` (las dos bases en Excel, BASE_HISTORICA y BASE_REDUCIDA_v2; el repo es privado y los datos vienen anonimizados) y `data/processed/` (parquet, supuestos y caché).
 - `scripts/` tareas de una vez; `sandbox/` mini-apps; `tests/` pruebas; `docs/` documentos.
 - Se corre siempre desde la raíz del repositorio.
 
@@ -18,5 +18,5 @@ Proyecto: Radar de Decisiones (Streamlit). El motor compara empresas reales; la 
 - Rutas y constantes siempre desde `config.py`.
 - La IA nunca inventa cifras: todo número del texto debe estar en el JSON.
 - Lenguaje: "las empresas que ya hacen esto muestran", nunca "logrará" ni "reducirá".
-- Nunca subir `.streamlit/secrets.toml` ni `data/raw/*.xlsx`.
+- Nunca subir `.streamlit/secrets.toml`. En `data/raw/` solo van las dos bases anonimizadas; ningún otro Excel.
 - Commits: `área: qué hiciste` (motor:, ia:, ui:, docs:, fix:).
