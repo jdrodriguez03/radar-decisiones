@@ -41,7 +41,7 @@ with col_ia:
                 messages=[{"role": "user", "content": armar_mensaje(estado, anterior)}],
             )
             segundos = time.perf_counter() - inicio
-            st.write(respuesta.content[0].text)
+            st.write(respuesta.content[0].text.replace("$", r"\$"))
             st.caption(
                 f"{segundos:.1f} s · {respuesta.usage.input_tokens} tokens de entrada · "
                 f"{respuesta.usage.output_tokens} de salida"
