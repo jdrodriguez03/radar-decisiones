@@ -1,30 +1,30 @@
 # Cada carpeta tiene un solo dueño. Reemplaza los usuarios de GitHub.
 # A = Aleja, B = Gaby, C = Julian, D = Juanes
 
-/app.py                          @USUARIO_GABY
-/.streamlit/config.toml          @USUARIO_GABY
-/ui/tema.py                      @USUARIO_GABY
-/ui/controles.py                 @USUARIO_GABY
-/ui/comparativo.py               @USUARIO_GABY
+/app.py                          @gabriela708
+/.streamlit/config.toml          @gabriela708
+/ui/tema.py                      @gabriela708
+/ui/controles.py                 @gabriela708
+/ui/comparativo.py               @gabriela708
 
-/motor/                          @USUARIO_ALEJA
-/motor/pesos.py                  @USUARIO_JUANES
-/scripts/preparar_datos.py       @USUARIO_ALEJA
-/scripts/verificar_demo.py       @USUARIO_ALEJA
-/ui/escenarios.py                @USUARIO_ALEJA
+/motor/                          @alejac-beep
+/motor/pesos.py                  @juanesaacosta26
+/scripts/preparar_datos.py       @alejac-beep
+/scripts/verificar_demo.py       @alejac-beep
+/ui/escenarios.py                @alejac-beep
 
-/ia/                             @USUARIO_JULIAN
-/ui/explicacion.py               @USUARIO_JULIAN
-/scripts/generar_cache.py        @USUARIO_JULIAN
+/ia/                             @jdrodriguez03
+/ui/explicacion.py               @jdrodriguez03
+/scripts/generar_cache.py        @jdrodriguez03
 
-/contrato/modelo.py              @USUARIO_JUANES
-/ui/selector.py                  @USUARIO_JUANES
-/ui/supuestos.py                 @USUARIO_JUANES
-/ui/procedencia.py               @USUARIO_JUANES
-/ui/historial.py                 @USUARIO_JUANES
-/scripts/correr_combinaciones.py @USUARIO_JUANES
-/contrato/fixtures/                 @USUARIO_JUANES
-/scripts/combinaciones.yaml                        @USUARIO_JUANES
+/contrato/modelo.py              @juanesaacosta26
+/ui/selector.py                  @juanesaacosta26
+/ui/supuestos.py                 @juanesaacosta26
+/ui/procedencia.py               @juanesaacosta26
+/ui/historial.py                 @juanesaacosta26
+/scripts/correr_combinaciones.py @juanesaacosta26
+/contrato/fixtures/                 @juanesaacosta26
+/scripts/combinaciones.yaml                        @juanesaacosta26
 
 # Todo lo demás (raíz, .github, config.py, docs generales)
-*                                @USUARIO_JULIAN
+*                                @jdrodriguez03
