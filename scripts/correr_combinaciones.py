@@ -1,1 +1,1 @@
-"""Corre las 20 combinaciones y escribe pruebas/resultados.md. Dueño: Juanes."""
+"""Corre las 20 combinaciones y escribe docs/resultados_combinaciones.md. Dueño: Juanes."""

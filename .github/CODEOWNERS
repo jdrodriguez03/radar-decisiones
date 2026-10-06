@@ -23,8 +23,8 @@
 /ui/procedencia.py               @USUARIO_JUANES
 /ui/historial.py                 @USUARIO_JUANES
 /scripts/correr_combinaciones.py @USUARIO_JUANES
-/tests/fixtures/                 @USUARIO_JUANES
-/pruebas/                        @USUARIO_JUANES
+/contrato/fixtures/                 @USUARIO_JUANES
+/scripts/combinaciones.yaml                        @USUARIO_JUANES
 
 # Todo lo demás (raíz, .github, config.py, docs generales)
 *                                @USUARIO_JULIAN

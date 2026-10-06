@@ -12,9 +12,9 @@ cp .streamlit/secrets.toml.example .streamlit/secrets.toml   # y poner la llave 
 ```
 
 ## Datos
-Copiar `BASE_REDUCIDA_v2.xlsx` desde la carpeta del equipo a `data/raw/` (no se sube a git). Luego: `make datos`.
+Copiar `BASE_REDUCIDA_v2.xlsx` desde la carpeta del equipo a `data/raw/` (no se sube a git). Luego: `python scripts/preparar_datos.py`.
 
 ## Comandos
-- `make run`: abre la app
-- `make test`: corre las pruebas
-- `make lint`: revisa el estilo
+- `streamlit run app.py`: abre la app
+- `pytest`: corre las pruebas
+- `ruff check .`: revisa el estilo

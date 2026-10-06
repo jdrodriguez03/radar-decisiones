@@ -9,7 +9,7 @@ RUTA_EMPRESAS = RAIZ / "data" / "processed" / "empresas.parquet"
 RUTA_SUPUESTOS = RAIZ / "data" / "processed" / "supuestos.json"
 RUTA_CACHE = RAIZ / "data" / "processed" / "cache.json"
 RUTA_EJEMPLO = RAIZ / "contrato" / "ejemplo.json"
-RUTA_FIXTURES = RAIZ / "tests" / "fixtures"
+RUTA_FIXTURES = RAIZ / "contrato" / "fixtures"
 
 # Palancas: columna -> (minimo, maximo, paso)
 PALANCAS = {
