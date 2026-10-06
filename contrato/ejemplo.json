@@ -1,1 +1,33 @@
-{}
+{
+  "meta": {"version": 1},
+  "empresa": {
+    "id": "COMPAÑIA 36", "plantilla_op": 1438,
+    "palancas": {"sal_dia_ini": 323.61, "aguinaldo_op": 15, "prima_vac_op": 0.25,
+                 "vales_op": 0.09, "rutas_x100": 2.85},
+    "indicadores": {"rot_anual": 0.516, "rot_temprana": 0.40, "ausentismo": 0.015}
+  },
+  "cambio": {"palanca": "aguinaldo_op", "de": 15, "a": 20},
+  "palancas_movidas": {"aguinaldo_op": 20},
+  "grupo": {
+    "n": 22, "completado": false, "ids": [],
+    "indicadores": {"rot_anual": 0.222, "rot_temprana": 0.50, "ausentismo": 0.016}
+  },
+  "resto": {
+    "n": 16, "ids": [],
+    "indicadores": {"rot_anual": 0.534, "rot_temprana": 0.50, "ausentismo": 0.010}
+  },
+  "senal": {"etiqueta": "clara", "p": 0.047},
+  "en_comun": [
+    {"texto": "prima vacacional de 50% o más", "grupo": "16 de 22", "resto": "4 de 16"},
+    {"texto": "salario inicial mediano", "grupo": 326, "resto": 284}
+  ],
+  "pesos": {
+    "costo_medida_anual": 2326756,
+    "costo_brecha_anual": 6341580,
+    "supuestos": {"costo_por_baja": 15000}
+  },
+  "explicacion": {
+    "fuente": "llm",
+    "texto": "Al llevar el aguinaldo a 20 días, su grupo de comparación queda en 22 empresas que pierden 22% de su plantilla al año, frente a 53% de las 16 que dan menos. Con su plantilla, rotar como ese grupo y no como hoy representa $6.3 millones al año en bajas, contra $2.3 millones que costaría la medida. Además, 16 de esas 22 empresas también pagan prima vacacional de 50% o más, frente a 4 de las 16 restantes."
+  }
+}
