@@ -1,5 +1,8 @@
 # Radar de Decisiones
 
+> ## ⚠️ Antes de tocar nada, lee la guía rápida
+> **[`docs/00_LEER_PRIMERO_guia_rapida_del_repositorio.docx`](docs/00_LEER_PRIMERO_guia_rapida_del_repositorio.docx)**: cómo está organizado el repositorio, cómo arrancar en VS Code, cómo se hacen los commits y cómo se revisa y se sube el trabajo. Es obligatoria para los cuatro y hay que leerla completa, con calma.
+
 Herramienta donde un directivo mueve una decisión de compensación y ve qué les pasa a las empresas reales que ya la tomaron. **No predice**: compara contra 40 empresas anónimas de la encuesta, y una IA explica el resultado en 3 frases.
 
 Proyecto del equipo para la convocatoria Catch. La demo en vivo es el día 16.
@@ -86,6 +89,7 @@ BASE_HISTORICA.xlsx → scripts/historica_a_reducida.py → BASE_REDUCIDA_v2.xls
 
 ## Más información
 
+- `docs/00_LEER_PRIMERO_guia_rapida_del_repositorio.docx`: la guía de uso del repositorio (obligatoria).
 - `docs/proyecto.docx`: la descripción completa del proyecto.
 - `docs/plan_15_dias.docx` y `docs/guia_dia_por_dia.docx`: el plan y qué hace cada persona cada día.
 - `docs/decisiones.md`: decisiones tomadas y pendientes.
