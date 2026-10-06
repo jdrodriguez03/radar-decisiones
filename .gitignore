@@ -7,17 +7,28 @@ __pycache__/
 .ruff_cache/
 
 # Secretos (NUNCA se suben)
-.streamlit/secrets.toml
+secrets.toml
 .env
-
+.env.*
+*.key
+*.pem
 
 # Sistema y editores
 .DS_Store
 Thumbs.db
+desktop.ini
 .vscode/
 .idea/
+.claude/
 
 # Excel: se ignoran todos, menos las dos bases del proyecto
 *.xlsx
+*.xls
+*.xlsm
 !data/raw/BASE_HISTORICA.xlsx
 !data/raw/BASE_REDUCIDA_v2.xlsx
+
+# Notebooks y pruebas locales
+.ipynb_checkpoints/
+.coverage
+*.log
