@@ -1,14 +1,14 @@
 """Validación del contrato JSON con pydantic. Dueño: Juanes."""
 
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel
 
 
 class Indicadores(BaseModel):
     rot_anual: float
-    rot_temprana: Optional[float] = None
-    ausentismo: Optional[float] = None
+    rot_temprana: float | None = None
+    ausentismo: float | None = None
 
 
 class Empresa(BaseModel):
@@ -34,12 +34,12 @@ class Grupo(BaseModel):
 class Resto(BaseModel):
     n: int
     ids: list[str]
-    indicadores: Optional[Indicadores] = None  # vacío en el estado inicial
+    indicadores: Indicadores | None = None  # vacío en el estado inicial
 
 
 class Senal(BaseModel):
     etiqueta: Literal["clara", "débil", "no concluyente", "no aplica"]
-    p: Optional[float] = None
+    p: float | None = None
 
 
 class EnComun(BaseModel):
@@ -66,14 +66,14 @@ class Meta(BaseModel):
 class Estado(BaseModel):
     meta: Meta
     empresa: Empresa
-    cambio: Optional[Cambio] = None          # None en el estado inicial
+    cambio: Cambio | None = None          # None en el estado inicial
     palancas_movidas: dict[str, float]
     grupo: Grupo
     resto: Resto
     senal: Senal
     en_comun: list[EnComun]
     pesos: Pesos
-    explicacion: Optional[Explicacion] = None
+    explicacion: Explicacion | None = None
 
 
 def validar(datos : dict) -> Estado:
