@@ -1,0 +1,90 @@
+{
+  "meta": {
+    "version": 1
+  },
+  "empresa": {
+    "id": "COMPAÑIA 36",
+    "plantilla_op": 1438,
+    "palancas": {
+      "sal_dia_ini": 323.61,
+      "aguinaldo_op": 15.0,
+      "prima_vac_op": 0.25,
+      "vales_op": 0.09,
+      "rutas_x100": 2.85
+    },
+    "indicadores": {
+      "rot_anual": 0.516,
+      "rot_temprana": 0.4,
+      "ausentismo": 0.015
+    }
+  },
+  "cambio": null,
+  "palancas_movidas": {},
+  "grupo": {
+    "n": 39,
+    "completado": false,
+    "ids": [
+      "COMPAÑIA 1",
+      "COMPAÑIA 2",
+      "COMPAÑIA 3",
+      "COMPAÑIA 4",
+      "COMPAÑIA 5",
+      "COMPAÑIA 6",
+      "COMPAÑIA 7",
+      "COMPAÑIA 8",
+      "COMPAÑIA 9",
+      "COMPAÑIA 10",
+      "COMPAÑIA 11",
+      "COMPAÑIA 12",
+      "COMPAÑIA 13",
+      "COMPAÑIA 14",
+      "COMPAÑIA 15",
+      "COMPAÑIA 16",
+      "COMPAÑIA 17",
+      "COMPAÑIA 18",
+      "COMPAÑIA 19",
+      "COMPAÑIA 20",
+      "COMPAÑIA 21",
+      "COMPAÑIA 22",
+      "COMPAÑIA 23",
+      "COMPAÑIA 24",
+      "COMPAÑIA 25",
+      "COMPAÑIA 26",
+      "COMPAÑIA 27",
+      "COMPAÑIA 28",
+      "COMPAÑIA 29",
+      "COMPAÑIA 30",
+      "COMPAÑIA 31",
+      "COMPAÑIA 32",
+      "COMPAÑIA 33",
+      "COMPAÑIA 34",
+      "COMPAÑIA 35",
+      "COMPAÑIA 37",
+      "COMPAÑIA 38",
+      "COMPAÑIA 39",
+      "COMPAÑIA 40"
+    ],
+    "indicadores": {
+      "rot_anual": 0.36,
+      "rot_temprana": 0.5,
+      "ausentismo": 0.015
+    }
+  },
+  "resto": {
+    "n": 0,
+    "ids": [],
+    "indicadores": null
+  },
+  "senal": {
+    "etiqueta": "no aplica",
+    "p": null
+  },
+  "en_comun": [],
+  "pesos": {
+    "costo_medida_anual": 0,
+    "costo_brecha_anual": 3364920,
+    "supuestos": {
+      "costo_por_baja": 15000
+    }
+  }
+}
