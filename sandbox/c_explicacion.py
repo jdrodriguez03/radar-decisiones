@@ -13,7 +13,43 @@ import anthropic
 import streamlit as st
 
 import config
+from ia.plantilla import plantilla
 from ia.prompts import PROMPT_SISTEMA, armar_mensaje
+
+
+def stream_api(estado, anterior):
+    """Llama a la API en streaming y devuelve trozos de texto."""
+    cliente = anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
+    with cliente.messages.stream(
+        model=config.MODELO_IA,
+        max_tokens=300,
+        system=PROMPT_SISTEMA,
+        messages=[{"role": "user", "content": armar_mensaje(estado, anterior)}],
+    ) as flujo:
+        yield from flujo.text_stream
+
+
+def stream_simulado(estado, pausa=0.04):
+    """Escribe la plantilla palabra por palabra, sin API."""
+    for palabra in plantilla(estado).split(" "):
+        yield palabra + " "
+        time.sleep(pausa)
+
+
+def con_tiempos(generador, tiempos):
+    """Anota cuándo llegó la primera palabra y cuándo terminó el texto."""
+    inicio = time.perf_counter()
+    for trozo in generador:
+        if "primera" not in tiempos:
+            tiempos["primera"] = time.perf_counter() - inicio
+        yield trozo
+    tiempos["total"] = time.perf_counter() - inicio
+
+
+def sin_latex(generador):
+    """Streamlit lee $...$ como fórmula: se escapa cada $ para que se vea como pesos."""
+    for trozo in generador:
+        yield trozo.replace("$", r"\$")
 
 st.set_page_config(page_title="Sandbox · explicación IA", layout="wide")
 st.title("Sandbox · explicación de la IA")
@@ -29,22 +65,16 @@ with col_estado:
         st.code(armar_mensaje(estado, anterior), language="text")
 
 with col_ia:
-    st.subheader(f"Respuesta de {config.MODELO_IA}")
+    modo = st.radio("Fuente del texto", ["API real", "Simulado (plantilla)"], horizontal=True)
+    st.subheader(f"Respuesta de {config.MODELO_IA}" if modo == "API real" else "Respuesta simulada")
     if st.button("Generar explicación", type="primary"):
+        generador = stream_api(estado, anterior) if modo == "API real" else stream_simulado(estado)
+        tiempos = {}
         try:
-            cliente = anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
-            inicio = time.perf_counter()
-            respuesta = cliente.messages.create(
-                model=config.MODELO_IA,
-                max_tokens=300,
-                system=PROMPT_SISTEMA,
-                messages=[{"role": "user", "content": armar_mensaje(estado, anterior)}],
-            )
-            segundos = time.perf_counter() - inicio
-            st.write(respuesta.content[0].text.replace("$", r"\$"))
-            st.caption(
-                f"{segundos:.1f} s · {respuesta.usage.input_tokens} tokens de entrada · "
-                f"{respuesta.usage.output_tokens} de salida"
-            )
+            st.write_stream(sin_latex(con_tiempos(generador, tiempos)))
+            m1, m2 = st.columns(2)
+            m1.metric("Primera palabra", f"{tiempos.get('primera', 0):.2f} s")
+            m2.metric("Texto completo", f"{tiempos.get('total', 0):.2f} s")
         except (anthropic.APIError, KeyError, FileNotFoundError) as error:  # error de la API o llave no encontrada
             st.error(f"{type(error).__name__}: {error}")
+
