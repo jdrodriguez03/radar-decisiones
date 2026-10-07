@@ -3,6 +3,7 @@ import pandas as pd
 
 from scripts.generar_calidad_datos import generar_informe
 
+
 #Se verifica que el informe de calidad de datos compare las palancas 
 # y distinga el mínimo legal.
 def test_informe_compara_palancas_y_distingue_el_minimo_legal():

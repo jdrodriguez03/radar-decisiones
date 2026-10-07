@@ -12,7 +12,9 @@ RAIZ = Path(__file__).resolve().parents[1]
 if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
 
-from config import ESCALA_MOTIVOS, RUTA_EMPRESAS, RUTA_XLSX  
+from config import ESCALA_MOTIVOS, RUTA_EMPRESAS, RUTA_XLSX
+
+
 # Se define una función para calcular la moda de una serie de pandas, devolviendo el primer valor de la moda si existe, o pd.NA si no hay moda.
 def _moda(valores: pd.Series) -> object:
     modas = valores.mode(dropna=True)

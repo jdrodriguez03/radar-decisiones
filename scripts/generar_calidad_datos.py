@@ -12,6 +12,7 @@ if str(RAIZ) not in sys.path:
 
 from config import PALANCAS, RUTA_EMPRESAS
 from motor.datos import cargar
+
 #Se define la ruta del informe de calidad de datos y una lista de empresas que requieren confirmación con Recursos Humanos.
 RUTA_INFORME = RAIZ / "docs" / "calidad_datos.md"
 EMPRESAS_POR_CONFIRMAR_RH = (
