@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "version": 1
+  },
+  "empresa": {
+    "id": "COMPAÑIA 36",
+    "plantilla_op": 1438,
+    "palancas": {
+      "sal_dia_ini": 323.61,
+      "aguinaldo_op": 15.0,
+      "prima_vac_op": 0.25,
+      "vales_op": 0.09,
+      "rutas_x100": 2.85
+    },
+    "indicadores": {
+      "rot_anual": 0.516,
+      "rot_temprana": 0.4,
+      "ausentismo": 0.015
+    }
+  },
+  "cambio": {
+    "palanca": "sal_dia_ini",
+    "de": 323.61,
+    "a": 350
+  },
+  "palancas_movidas": {
+    "aguinaldo_op": 20,
+    "prima_vac_op": 0.5,
+    "sal_dia_ini": 350
+  },
+  "grupo": {
+    "n": 5,
+    "completado": false,
+    "ids": [
+      "COMPAÑIA 2",
+      "COMPAÑIA 9",
+      "COMPAÑIA 19",
+      "COMPAÑIA 28",
+      "COMPAÑIA 40"
+    ],
+    "indicadores": {
+      "rot_anual": 0.12,
+      "rot_temprana": 0.4,
+      "ausentismo": 0.007
+    }
+  },
+  "resto": {
+    "n": 33,
+    "ids": [
+      "COMPAÑIA 1",
+      "COMPAÑIA 3",
+      "COMPAÑIA 4",
+      "COMPAÑIA 5",
+      "COMPAÑIA 6",
+      "COMPAÑIA 7",
+      "COMPAÑIA 8",
+      "COMPAÑIA 10",
+      "COMPAÑIA 11",
+      "COMPAÑIA 12",
+      "COMPAÑIA 13",
+      "COMPAÑIA 14",
+      "COMPAÑIA 15",
+      "COMPAÑIA 16",
+      "COMPAÑIA 17",
+      "COMPAÑIA 18",
+      "COMPAÑIA 20",
+      "COMPAÑIA 21",
+      "COMPAÑIA 22",
+      "COMPAÑIA 23",
+      "COMPAÑIA 24",
+      "COMPAÑIA 25",
+      "COMPAÑIA 26",
+      "COMPAÑIA 29",
+      "COMPAÑIA 30",
+      "COMPAÑIA 31",
+      "COMPAÑIA 32",
+      "COMPAÑIA 33",
+      "COMPAÑIA 34",
+      "COMPAÑIA 35",
+      "COMPAÑIA 37",
+      "COMPAÑIA 38",
+      "COMPAÑIA 39"
+    ],
+    "indicadores": {
+      "rot_anual": 0.384,
+      "rot_temprana": 0.5,
+      "ausentismo": 0.015
+    }
+  },
+  "senal": {
+    "etiqueta": "no concluyente",
+    "p": 0.235
+  },
+  "en_comun": [
+    {
+      "texto": "salario inicial mediano",
+      "grupo": 373.0,
+      "resto": 309.0
+    },
+    {
+      "texto": "prima vacacional de 50% o más",
+      "grupo": "5 de 5",
+      "resto": "15 de 33"
+    }
+  ],
+  "pesos": {
+    "costo_medida_anual": 17574129,
+    "costo_brecha_anual": 8541720,
+    "supuestos": {
+      "costo_por_baja": 15000
+    }
+  }
+}
