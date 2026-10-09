@@ -49,7 +49,7 @@ html(f'<div class="subtitulo">{empresa["id"]} - Plantilla {empresa["plantilla_op
 
 col_izq, col_centro, col_der = st.columns([1, 2, 1.3], gap="large")
 
-# Columna izquierda: palancas 
+# Columna izquierda: palancas
 with col_izq:
     html('<div class="titulo-col">Palancas</div>')
     for clave, nombre in NOMBRES_PALANCAS.items():
