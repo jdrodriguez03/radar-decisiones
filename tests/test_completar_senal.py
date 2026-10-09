@@ -8,7 +8,7 @@ from motor.datos import cargar
 def empresas():
     return cargar()
 
-
+# test para verificar que la función comparar devuelve el grupo
 def test_prima_50_por_ciento_da_grupo_16_y_senal_debil(empresas):
     resultado = comparar(
         empresas,
@@ -21,7 +21,7 @@ def test_prima_50_por_ciento_da_grupo_16_y_senal_debil(empresas):
     assert resultado["senal"]["etiqueta"] == "débil"
     assert resultado["senal"]["p"] == pytest.approx(0.051, abs=0.005)
 
-
+# test para verificar que la función comparar completa el grupo con empresas similares si el grupo inicial es menor que el tamaño mínimo.
 def test_tamano_parecido_completa_el_grupo_a_cinco(empresas):
     resultado = comparar(
         empresas,
@@ -34,7 +34,7 @@ def test_tamano_parecido_completa_el_grupo_a_cinco(empresas):
     assert resultado["completado"] is True
     assert resultado["senal"]["etiqueta"] == "no concluyente"
 
-
+# test para verificar que la función comparar no marca completado si el grupo inicial es mayor o igual al tamaño mínimo.
 def test_salario_350_sin_filtro_de_tamano_no_marca_completado(empresas):
     resultado = comparar(
         empresas,
