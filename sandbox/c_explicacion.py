@@ -88,7 +88,8 @@ with col_ia:
             generador = stream_simulado(estado)
         else:
             cliente = ClienteLento() if modo.startswith("API lenta") else None
-            generador = explicar(estado, anterior, cliente=cliente)
+            pulso = st.empty()  # marcador invisible: tocarlo deja que Streamlit note un clic nuevo
+            generador = explicar(estado, anterior, cliente=cliente, latido=pulso.empty)
         tiempos = {}
         st.write_stream(sin_latex(con_tiempos(generador, tiempos)))
         m1, m2, m3 = st.columns(3)
