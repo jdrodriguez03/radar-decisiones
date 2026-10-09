@@ -43,6 +43,7 @@ class ClienteFalso:
         self.datos = datos
 
     def stream(self, **kwargs):
+        self.pedido = kwargs  # lo que se le mandó a la API, para revisarlo en la prueba
         self.flujo = FlujoFalso(**self.datos)  # se guarda para revisarlo en la prueba
         return self.flujo
 
@@ -107,3 +108,17 @@ def test_clic_nuevo_mientras_espera_la_primera_palabra():
         list(explicar(estado, None, cliente=cliente, limite=4, latido=latido))
     assert time.perf_counter() - inicio < 1  # no esperó los 4 s del límite
     assert estado["explicacion"] == antes
+    
+@pytest.mark.parametrize(
+    "modelo, pensamiento",
+    [
+        ("claude-sonnet-5-5", {"type": "between_tools"}),
+        ("claude-haiku-5-5", {"type": "disabled"}),
+        ("claude-haiku-4-5-20251001", None),
+    ],
+)
+def test_apaga_el_pensamiento_en_los_modelos_5(modelo, pensamiento):
+    cliente = ClienteFalso(trozos=["Hola."])
+    "".join(explicar(cargar_estado(), None, cliente=cliente, limite=1, modelo=modelo))
+    assert cliente.pedido["model"] == modelo
+    assert cliente.pedido.get("thinking") == pensamiento
