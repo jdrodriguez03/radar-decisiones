@@ -6,6 +6,8 @@ import streamlit as st
 
 from ui.tema import aplicar_estilos
 
+from ui.controles import render  
+
 st.set_page_config(layout="wide")
 aplicar_estilos()
 
@@ -52,12 +54,7 @@ col_izq, col_centro, col_der = st.columns([1, 2, 1.3], gap="large")
 # Columna izquierda: palancas
 with col_izq:
     html('<div class="titulo-col">Palancas</div>')
-    for clave, nombre in NOMBRES_PALANCAS.items():
-        st.text_input(nombre, value=str(empresa["palancas"][clave]),
-                      disabled=True, key=f"palanca_{clave}")
-    b1, b2 = st.columns(2)
-    b1.button("↻ Restablecer")
-    b2.button("Guardar")
+    palancas_movidas, cambio = render(empresa)
 
 # Columna central: indicadores, gráfica, cifras en pesos
 with col_centro:
