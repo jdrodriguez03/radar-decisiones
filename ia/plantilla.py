@@ -25,8 +25,22 @@ def nombre_palanca(palanca, valor):
     return nombres[palanca](valor)
 
 
+
+def _plantilla_inicial(estado):
+    """Texto cuando el usuario aún no mueve ninguna palanca (estado inicial o Restablecer)."""
+    empresa = estado["empresa"]["indicadores"]["rot_anual"]
+    grupo = estado["grupo"]
+    return (
+        f"Hoy su empresa pierde {fmt_pct(empresa)} de su plantilla al año; "
+        f"la empresa típica entre las {grupo['n']} empresas de la encuesta pierde {fmt_pct(grupo['indicadores']['rot_anual'])}. "
+        f"Mueva una palanca para ver qué muestran las empresas que ya la aplican."
+    )
+
+
 def plantilla(estado):
-    cambio = estado["cambio"]
+    cambio = estado.get("cambio")
+    if not cambio:
+        return _plantilla_inicial(estado)
     grupo = estado["grupo"]
     resto = estado["resto"]
     pesos = estado["pesos"]

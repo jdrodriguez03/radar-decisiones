@@ -1,6 +1,6 @@
 import json
 
-from config import RUTA_EJEMPLO
+from config import RUTA_EJEMPLO, RUTA_FIXTURES
 from ia.plantilla import fmt_pct, fmt_pesos, plantilla
 
 
@@ -24,3 +24,11 @@ def test_brecha_en_cero():
     estado = cargar_ejemplo()
     estado["pesos"]["costo_brecha_anual"] = 0
     assert "ya rota menos" in plantilla(estado)
+
+
+def test_estado_inicial_sin_cambio():
+    estado = json.loads((RUTA_FIXTURES / "05_inicial.json").read_text(encoding="utf-8"))
+    texto = plantilla(estado)  # antes se rompía: cambio es None
+    assert "52%" in texto  # lo que pierde hoy la empresa
+    assert "39 empresas" in texto
+    assert "36%" in texto

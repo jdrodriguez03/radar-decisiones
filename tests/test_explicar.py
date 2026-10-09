@@ -1,11 +1,12 @@
 import json
 import time
 
+import anthropic
 import pytest
 
-from config import RUTA_EJEMPLO
+from config import RUTA_EJEMPLO, RUTA_FIXTURES
 from contrato.modelo import validar
-from ia.explicar import explicar
+from ia.explicar import TEXTO_EMERGENCIA, explicar
 from ia.plantilla import plantilla
 
 
@@ -122,3 +123,30 @@ def test_apaga_el_pensamiento_en_los_modelos_5(modelo, pensamiento):
     "".join(explicar(cargar_estado(), None, cliente=cliente, limite=1, modelo=modelo))
     assert cliente.pedido["model"] == modelo
     assert cliente.pedido.get("thinking") == pensamiento
+
+
+class ClienteSinInternet:
+    """Lanza el mismo error que da el SDK de Anthropic cuando no hay conexión."""
+
+    def __init__(self):
+        self.messages = self
+
+    def stream(self, **kwargs):
+        raise anthropic.APIConnectionError(request=None)
+
+
+@pytest.mark.parametrize("nombre", ["01_aguinaldo", "02_prima", "03_salario", "04_ya_rota_menos", "05_inicial"])
+def test_sin_internet_sale_la_plantilla_en_menos_de_un_segundo(nombre):
+    estado = json.loads((RUTA_FIXTURES / f"{nombre}.json").read_text(encoding="utf-8"))
+    inicio = time.perf_counter()
+    texto = "".join(explicar(estado, None, cliente=ClienteSinInternet()))
+    assert time.perf_counter() - inicio < 1
+    assert texto == plantilla(estado)
+    assert estado["explicacion"]["fuente"] == "plantilla"
+
+
+def test_si_hasta_la_plantilla_falla_sale_un_texto_fijo():
+    estado = cargar_estado()
+    del estado["pesos"]  # un estado incompleto rompe la plantilla
+    texto = "".join(explicar(estado, None, cliente=ClienteSinInternet()))
+    assert texto == TEXTO_EMERGENCIA
