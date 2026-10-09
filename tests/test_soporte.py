@@ -1,5 +1,5 @@
 """Pruebas del panel ⚙ y de las etiquetas. Dueño: Juanes."""
-from ui.procedencia import AMBAR, ACENTO, observado, supuesto
+from ui.procedencia import ACENTO, AMBAR, observado, supuesto
 from ui.supuestos import por_defecto
 
 
