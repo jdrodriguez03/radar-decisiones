@@ -1,0 +1,37 @@
+{
+  "COMPAÑIA 36|aguinaldo_op=20,prima_vac_op=0.5,sal_dia_ini=350|15000": {
+    "creado": "2026-10-10",
+    "modelo": "claude-sonnet-5-5",
+    "texto": "Las 5 empresas que ya dan aguinaldo de 20 días, prima vacacional de 50% y salario inicial de 350 pesos diarios o más pierden 12% de su plantilla al año; las demás, 38%. Para su empresa, esa diferencia equivale a $8.5 millones de pesos al año en bajas, contra $17.6 millones de pesos que costaría la medida. Con solo 5 empresas, la señal es no concluyente: no permite saber si estas medidas explican la diferencia."
+  },
+  "COMPAÑIA 36|aguinaldo_op=20,prima_vac_op=0.5,sal_dia_ini=350|15000 <- COMPAÑIA 36|aguinaldo_op=20,prima_vac_op=0.5|15000": {
+    "creado": "2026-10-10",
+    "modelo": "claude-sonnet-5-5",
+    "texto": "Con el salario inicial de $350 al día, el aguinaldo de 20 días y la prima vacacional de 50%, quedan 5 empresas, antes 16; pierden 12% de su plantilla al año y las demás, 38%. Para su empresa, la diferencia equivale a $8.5 millones de pesos al año en bajas, contra $17.6 millones de pesos de la medida. Con tan pocas empresas, la señal no es concluyente y conviene tomar este resultado con cautela."
+  },
+  "COMPAÑIA 36|aguinaldo_op=20,prima_vac_op=0.5|15000": {
+    "creado": "2026-10-10",
+    "modelo": "claude-sonnet-5-5",
+    "texto": "Las 16 empresas que ya dan aguinaldo de 20 días o más y prima vacacional de 50% o más pierden 17% de su plantilla al año; las demás, 43%. Para su empresa, que hoy pierde 52%, esa diferencia equivale a $7.4 millones de pesos al año en bajas, contra $3.7 millones de pesos que costaría la medida. Además, esas empresas suelen tener un salario inicial más alto que las demás, aunque la señal es débil."
+  },
+  "COMPAÑIA 36|aguinaldo_op=20,prima_vac_op=0.5|15000 <- COMPAÑIA 36|aguinaldo_op=20|15000": {
+    "creado": "2026-10-10",
+    "modelo": "claude-sonnet-5-5",
+    "texto": "Con la prima vacacional de 50% y el aguinaldo de 20 días, quedan 16 empresas, antes 22; pierden 17% de su plantilla al año y las demás, 43%. Para su empresa, la diferencia equivale a $7.4 millones de pesos al año en bajas, contra $3.7 millones de la medida. Además, esas empresas suelen tener un salario inicial más alto, aunque la señal es débil y conviene tomarla con cautela."
+  },
+  "COMPAÑIA 36|aguinaldo_op=20|15000": {
+    "creado": "2026-10-10",
+    "modelo": "claude-sonnet-5-5",
+    "texto": "Las 22 empresas que ya dan aguinaldo de 20 días o más pierden 22% de su plantilla al año; las demás, 53%. Para su empresa, esa diferencia equivale a $6.3 millones de pesos al año en bajas, contra $2.3 millones de pesos que costaría la medida. Además, la mayoría de esas empresas también da prima vacacional de 50% o más."
+  },
+  "COMPAÑIA 36|sin cambios|15000": {
+    "creado": "2026-10-10",
+    "modelo": "claude-sonnet-5-5",
+    "texto": "Su empresa pierde hoy 52% de su plantilla al año, mientras que las 39 empresas de la encuesta pierden 36%. Esa diferencia equivale a $3.4 millones de pesos al año en bajas, y aún no hay una medida con costo que comparar. Mueva una palanca, como el aguinaldo o la prima vacacional, para ver qué muestran las empresas que ya la aplican."
+  },
+  "COMPAÑIA 37|vales_op=0.12|15000": {
+    "creado": "2026-10-10",
+    "modelo": "claude-sonnet-5-5",
+    "texto": "Las 7 empresas que ya dan vales de 12% o más pierden 42% de su plantilla al año; las demás, 34%, así que la señal es no concluyente. Su empresa pierde hoy 4% de su plantilla al año, igual o menos que esas empresas, por lo que no hay diferencia en pesos a su favor. Además, esas empresas tienen un salario inicial parecido al de las demás."
+  }
+}
