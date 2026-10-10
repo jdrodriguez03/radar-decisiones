@@ -32,6 +32,6 @@
   "COMPAÑIA 37|vales_op=0.12|15000": {
     "creado": "2026-10-10",
     "modelo": "claude-sonnet-5-5",
-    "texto": "Las 7 empresas que ya dan vales de 12% o más pierden 42% de su plantilla al año; las demás, 34%, así que la señal es no concluyente. Su empresa pierde hoy 4% de su plantilla al año, igual o menos que esas empresas, por lo que no hay diferencia en pesos a su favor. Además, esas empresas tienen un salario inicial parecido al de las demás."
+    "texto": "Las 7 empresas que ya dan vales de 12% o más pierden 42% de su plantilla al año; las demás, 34%, y la señal no es concluyente. Su empresa pierde hoy 4% de su plantilla al año, igual o menos que esas empresas, por lo que no hay diferencia en pesos a su favor. Además, esas empresas tienen un salario inicial parecido al de las demás."
   }
 }
