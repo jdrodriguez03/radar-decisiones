@@ -65,5 +65,17 @@ def cifras_permitidas(estado):
     recorrer(estado)
     return permitidas
 
-def es_valido(texto, estado):
-    raise NotImplementedError
+def cifras_inventadas(texto, estado, anterior=None):
+    """Lista de los números del texto que no salen del estado ni del paso anterior.
+
+    Sirve para depurar: en el sandbox se puede mostrar cuál cifra falló.
+    """
+    permitidas = cifras_permitidas(estado)
+    if anterior:  # "quedan 16 empresas, antes 22": el 22 viene del paso anterior
+        permitidas |= cifras_permitidas(anterior)
+    return [n for n in extraer_numeros(texto) if n not in permitidas]
+
+
+def es_valido(texto, estado, anterior=None):
+    """True si todas las cifras del texto existen en el estado (o en el anterior)."""
+    return not cifras_inventadas(texto, estado, anterior)
