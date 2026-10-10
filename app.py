@@ -4,9 +4,8 @@ from pathlib import Path
 
 import streamlit as st
 
+from ui.controles import render
 from ui.tema import aplicar_estilos
-
-from ui.controles import render  
 
 st.set_page_config(layout="wide")
 aplicar_estilos()
