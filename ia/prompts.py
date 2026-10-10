@@ -137,13 +137,22 @@ def resumir_cambio(estado, anterior):
     return lineas
 
 
-def armar_mensaje(estado, anterior):
-    """Arma el mensaje para la IA: el cambio, el estado actual y qué cambió frente al anterior."""
+def anterior_util(estado, anterior):
+    """El paso anterior solo cuenta si es de la misma empresa y ya tenía una palanca movida.
+
+    Otra empresa, o el anterior es el estado inicial (sin palancas movidas, con las 39 empresas):
+    decir "antes 39" confunde, así que se trata como primera comparación (None).
+    La usan armar_mensaje y la llave del caché, para que las dos sigan la misma regla.
+    """
     misma_empresa = _dato(anterior, ("empresa", "id")) == _dato(estado, ("empresa", "id"))
     if not misma_empresa or not _dato(anterior, ("cambio",)):
-    # Otra empresa, o el anterior es el estado inicial (sin palancas movidas, con las 39 empresas):
-    # decir "antes 39" confunde, así que se trata como primera comparación.
-        anterior = None
+        return None
+    return anterior
+
+
+def armar_mensaje(estado, anterior):
+    """Arma el mensaje para la IA: el cambio, el estado actual y qué cambió frente al anterior."""
+    anterior = anterior_util(estado, anterior)
 
     cambio = estado.get("cambio")
     partes = [f"Cambio que hizo el usuario:\n{_json(cambio)}" if cambio else "El usuario aún no ha movido ninguna palanca."]
