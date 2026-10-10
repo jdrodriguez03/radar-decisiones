@@ -11,21 +11,28 @@ def _pct(v):
     return f"{v:.1%}"
 
 
-# Rangos y pasos de la tabla de controles del proyecto.
-# prima y vales se guardan como fracción (0.25 = 25%), igual que el contrato.
 CONTROLES = {
-    "sal_dia_ini": dict(nombre="Salario diario inicial", min=250.0, max=380.0, paso=10.0,
-                        fmt=_moneda, slider="%.0f"),
-    "aguinaldo_op": dict(nombre="Aguinaldo (días)", min=15.0, max=32.0, paso=1.0,
-                         fmt=lambda v: f"{v:.0f}", slider="%.0f"),
-    "prima_vac_op": dict(nombre="Prima Vacacional", min=0.25, max=1.0, paso=0.05,
-                         fmt=_pct, slider="%.2f"),
-    "vales_op": dict(nombre="Vales", min=0.06, max=0.12, paso=0.005,
-                     fmt=_pct, slider="%.3f"),
-    "rutas_x100": dict(nombre="Rutas por 100", min=0.0, max=10.8, paso=0.5,
-                       fmt=lambda v: f"{v:.2f}", slider="%.1f"),
+    "sal_dia_ini": {
+        "nombre": "Salario diario inicial", "min": 250.0, "max": 380.0, "paso": 10.0,
+        "fmt": _moneda, "slider": "%.0f",
+    },
+    "aguinaldo_op": {
+        "nombre": "Aguinaldo (días)", "min": 15.0, "max": 32.0, "paso": 1.0,
+        "fmt": lambda v: f"{v:.0f}", "slider": "%.0f",
+    },
+    "prima_vac_op": {
+        "nombre": "Prima Vacacional", "min": 0.25, "max": 1.0, "paso": 0.05,
+        "fmt": _pct, "slider": "%.2f",
+    },
+    "vales_op": {
+        "nombre": "Vales", "min": 0.06, "max": 0.12, "paso": 0.005,
+        "fmt": _pct, "slider": "%.3f",
+    },
+    "rutas_x100": {
+        "nombre": "Rutas por 100", "min": 0.0, "max": 10.8, "paso": 0.5,
+        "fmt": lambda v: f"{v:.2f}", "slider": "%.1f",
+    },
 }
-
 
 def _k(clave):
     return f"valor_{clave}"
