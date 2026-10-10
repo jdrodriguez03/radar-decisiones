@@ -1,7 +1,11 @@
 """Panel derecho: explicación de la IA, señal y n. Dueño: Julian."""
+import itertools
+
 import streamlit as st
 
 from ia.explicar import explicar
+
+ESPERA = "Analizando las empresas…"
 
 
 def sin_latex(texto):
@@ -27,19 +31,20 @@ def pie(estado):
     return texto
 
 
-def render(contenedor, estado, anterior):
-    """Dibuja el panel derecho: la explicación palabra por palabra y, debajo, la señal y el n.
+def render(contenedor, estado, anterior, cliente=None, cache=None):
+    """Dibuja el panel derecho: la explicación con efecto de escritura y, debajo, la señal y el n.
 
-    Si la IA escribió algo que el validador rechazó, el texto ya se vio en pantalla
-    mientras llegaba. Al terminar, el panel se redibuja con estado["explicacion"]["texto"],
-    que en ese caso es la plantilla: el texto malo dura en pantalla solo un instante.
+    Mientras el texto se consigue y se valida, se ve ESPERA. El texto solo aparece cuando
+    ya está aprobado, así que en pantalla nunca hay una cifra que no esté en los datos.
+    `cliente` y `cache` son opcionales: el sandbox los usa para simular cada caso del flujo.
     """
     with contenedor:
-        caja = st.empty()  # un solo lugar para el texto: así se puede reemplazar al terminar
+        caja = st.empty()  # un solo lugar: primero el mensaje de espera, después el texto
         pulso = st.empty()  # marcador invisible: tocarlo deja que Streamlit note un clic nuevo
-        with caja.container():
-            st.write_stream(_sin_latex_stream(explicar(estado, anterior, latido=pulso.empty)))
-        final = (estado.get("explicacion") or {}).get("texto")
-        if final:
-            caja.markdown(sin_latex(final))
+        caja.caption(ESPERA)
+        texto = explicar(estado, anterior, cliente=cliente, cache=cache, latido=pulso.empty)
+        primera = next(texto, None)  # aquí se espera: la IA escribe en silencio y se valida
+        if primera is not None:
+            with caja.container():
+                st.write_stream(_sin_latex_stream(itertools.chain([primera], texto)))
         st.caption(pie(estado))
