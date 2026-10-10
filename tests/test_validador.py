@@ -125,3 +125,34 @@ def test_la_plantilla_con_rutas_pasa():
     estado["cambio"] = {"palanca": "rutas_x100", "de": 2.85, "a": 3}
     estado["palancas_movidas"] = {"rutas_x100": 3}
     assert es_valido(plantilla(estado), estado)
+
+# --- Las tres aperturas: métricas precalculadas, números del idioma y redondeo hacia abajo ---
+
+def test_acepta_las_metricas_precalculadas():
+    texto = "22 de las 38 empresas comparables, 58%, ya lo hacen; la medida suma 1.4% a la nómina base."
+    assert es_valido(texto, cargar("01_aguinaldo.json"))
+
+
+def test_una_cuenta_que_no_esta_en_la_lista_sigue_fallando():
+    # 319 = 1,438 × 0.222: cierta, pero no está entre las métricas precalculadas
+    assert cifras_inventadas("Esas empresas perderían unas 319 personas.", cargar("01_aguinaldo.json")) == [319.0]
+
+
+def test_acepta_los_numeros_del_idioma():
+    texto = "De cada 100 operativos, 52 se van al año; unas 297 personas se van antes de 3 meses, en 12 meses."
+    assert es_valido(texto, cargar("01_aguinaldo.json"))
+
+
+def test_acepta_redondear_hacia_abajo_pero_no_mas():
+    estado = cargar()  # la empresa pierde 0.516
+    assert es_valido("Su empresa pierde 51% de su plantilla al año.", estado)  # hacia abajo
+    assert es_valido("Su empresa pierde 52% de su plantilla al año.", estado)  # al más cercano
+    # 49 ya no es redondeo: es otra cifra (y no sirve 50, que existe: la rotación temprana del grupo es 0.50)
+    assert not es_valido("Su empresa pierde 49% de su plantilla al año.", estado)
+
+
+def test_el_redondeo_hacia_abajo_no_se_confunde_con_decimales_raros():
+    # 0.29 * 100 da 28.999999999999996 en Python; sin limpiarlo, "hacia abajo" daría 28
+    estado = cargar()
+    estado["grupo"]["indicadores"]["rot_anual"] = 0.29
+    assert cifras_inventadas("Esas empresas pierden 29%; ninguna 28%.", estado) == [28.0]

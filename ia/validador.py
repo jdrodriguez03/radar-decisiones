@@ -1,5 +1,8 @@
 """Revisa que toda cifra del texto exista en el JSON. Dueño: Julian."""
+import math
 import re
+
+from ia.derivadas import cifras_derivadas
 
 # Un número tal como lo escribe la IA: "1,438" (miles con coma), "6.3" (decimal) o "22" (entero).
 # La alternativa de miles va primero: si no, "1,438" saldría como 1 y 438.
@@ -15,9 +18,13 @@ def extraer_numeros(texto):
     """'pierden 22% ... $6.3 millones ... 1,438' -> [22.0, 6.3, 1438.0]"""
     return [_redondear(n.replace(",", "")) for n in PATRON_NUMERO.findall(texto)]
 
-# Números que no vienen del JSON pero que la plantilla usa como texto fijo.
-# "100" sale de "rutas a 3 por cada 100 operativos".
-NUMEROS_FIJOS = {100.0}
+
+# Números del idioma, no de los datos: el texto puede usarlos aunque no estén en el JSON.
+# - 100: "de cada 100 operativos" y "rutas por cada 100 operativos".
+# - 3:   "se van antes de 3 meses" (así se define la rotación temprana).
+# - 12:  "los 12 meses del año".
+# Cada número que se agrega aquí abre un hueco (un 12% inventado pasaría). Por eso son pocos.
+NUMEROS_FIJOS = {100.0, 3.0, 12.0}
 
 # Llaves del JSON que no son cifras para el usuario:
 # - ids: nombres de 40 empresas ("COMPAÑIA 7"); dejarlas permitiría casi cualquier número de 1 a 40.
@@ -36,7 +43,13 @@ def _formas(valor):
     v = float(valor)
     formas = {_redondear(v), _redondear(round(v))}
     if abs(v) < 10:  # proporciones (rotación, prima, vales); 10 deja pasar rotaciones de hasta 1000%
-        formas |= {_redondear(v * 100), _redondear(round(v * 100)), _redondear(round(v * 100, 1))}
+        porcentaje = round(v * 100, 6)  # 0.29 * 100 da 28.999999999999996: se limpia antes de redondear
+        formas |= {
+            _redondear(porcentaje),
+            _redondear(round(porcentaje)),  # 0.516 -> 52 (al más cercano)
+            _redondear(math.floor(porcentaje)),  # 0.516 -> 51 (hacia abajo): un punto de redondeo no es un invento
+            _redondear(round(porcentaje, 1)),
+        }
     if abs(v) >= 100_000:  # montos en pesos: "$6.3 millones"
         formas.add(_redondear(round(v / 1_000_000, 1)))
     return formas
@@ -63,7 +76,12 @@ def cifras_permitidas(estado):
                 recorrer(valor)
 
     recorrer(estado)
+    # Las métricas precalculadas (ia/derivadas.py) ya vienen en su forma final (58, 1.4, 742):
+    # se agregan exactas, sin _formas, para no abrir huecos como 140 o 1 a partir de 1.4.
+    for derivada in cifras_derivadas(estado).values():
+        permitidas.add(_redondear(derivada["valor"]))
     return permitidas
+
 
 def cifras_inventadas(texto, estado, anterior=None):
     """Lista de los números del texto que no salen del estado ni del paso anterior.
