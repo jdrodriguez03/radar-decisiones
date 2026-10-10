@@ -10,6 +10,7 @@ import anthropic
 import config
 from ia.plantilla import plantilla
 from ia.prompts import PROMPT_SISTEMA, armar_mensaje
+from ia.validador import es_valido
 
 PAUSA_MAX_SEG = 10  # máximo entre un trozo y el siguiente, ya empezado el texto
 LATIDO_SEG = 0.1  # cada cuánto se avisa a la pantalla mientras se espera, para notar un clic nuevo
@@ -135,6 +136,11 @@ def explicar(estado, anterior, cliente=None, limite=None, latido=None, modelo=No
         texto = "".join(trozos).strip()
         if not texto:
             raise ValueError("la IA devolvió un texto vacío")
+        if not es_valido(texto, estado, anterior):
+            # El texto ya se vio en pantalla palabra por palabra; aquí no se puede borrar.
+            # Por eso se guarda la plantilla en estado["explicacion"]: ui/explicacion.render
+            # redibuja el panel con ese texto al terminar el streaming.
+            raise ValueError("la IA escribió una cifra que no está en el JSON")
         estado["explicacion"] = {"fuente": "llm", "texto": texto}
     except Exception:  # noqa: BLE001  cualquier fallo cae a la plantilla
         _detener(cancelar, abierto)
