@@ -150,3 +150,18 @@ def test_si_hasta_la_plantilla_falla_sale_un_texto_fijo():
     del estado["pesos"]  # un estado incompleto rompe la plantilla
     texto = "".join(explicar(estado, None, cliente=ClienteSinInternet()))
     assert texto == TEXTO_EMERGENCIA
+
+
+def test_cifra_inventada_cae_a_la_plantilla():
+    estado = cargar_estado()
+    cliente = ClienteFalso(trozos=["Esas 22 empresas ", "pierden 31 puntos menos."])  # 31 no está en el JSON
+    texto_en_pantalla = "".join(explicar(estado, None, cliente=cliente, limite=1))
+    assert "31" in texto_en_pantalla  # ya se escribió en pantalla: explicar no puede borrarlo
+    assert estado["explicacion"] == {"fuente": "plantilla", "texto": plantilla(cargar_estado())}
+
+
+def test_texto_con_cifras_reales_se_queda():
+    estado = cargar_estado()
+    cliente = ClienteFalso(trozos=["Las 22 empresas ", "pierden 22% al año; las demás, 53%."])
+    "".join(explicar(estado, None, cliente=cliente, limite=1))
+    assert estado["explicacion"]["fuente"] == "llm"
