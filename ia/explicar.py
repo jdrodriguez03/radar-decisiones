@@ -8,6 +8,7 @@ import time
 import anthropic
 
 import config
+from ia.cache import buscar
 from ia.plantilla import plantilla
 from ia.prompts import PROMPT_SISTEMA, armar_mensaje
 from ia.validador import es_valido
@@ -103,7 +104,7 @@ def _esperar(cola, espera, latido):
                 latido()
 
 
-def explicar(estado, anterior, cliente=None, limite=None, latido=None, modelo=None):
+def explicar(estado, anterior, cliente=None, limite=None, latido=None, modelo=None, cache=None):
     """Generador de texto para st.write_stream.
 
     Si la primera palabra no llega en `limite` segundos, o hay cualquier error,
@@ -112,7 +113,17 @@ def explicar(estado, anterior, cliente=None, limite=None, latido=None, modelo=No
 
     Si llega un clic nuevo mientras se escribe (Streamlit deja de leer este
     generador), se cierra la conexión con la API y no se toca estado["explicacion"].
+
+    Antes de llamar a la API busca el estado en el caché (data/processed/cache.json):
+    si está, devuelve ese texto al instante, sin internet. `cache` permite pasar uno
+    propio; precalcular usa {} para obligar a pedirle el texto a la IA.
     """
+    guardado = buscar(estado, anterior, cache)
+    if guardado:
+        estado["explicacion"] = {"fuente": "cache", "texto": guardado}
+        yield guardado
+        return
+
     limite = config.TIEMPO_LIMITE_IA_SEG if limite is None else limite
     modelo = modelo or config.MODELO_IA  # el sandbox puede probar otro modelo sin tocar config.py
     cola = queue.Queue()
