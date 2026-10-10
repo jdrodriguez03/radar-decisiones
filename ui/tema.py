@@ -1,4 +1,3 @@
-"""Colores y estilos. Dueño: Gaby."""
 import streamlit as st
 
 # Tema oscuro (config.toml) aplicado a la estructura de la plantilla
@@ -72,6 +71,13 @@ def aplicar_estilos():
         .cifra {{ font-size: 24px; font-weight: 700; color: {TEXTO}; }}
         .cifra-acento {{ font-size: 24px; font-weight: 700; color: {ACENTO}; }}
         .supuesto {{ color: {AMBAR}; }}
+
+        /* comparativo */
+        .comp-encabezado {{ font-size: 22px; color: {TEXTO}; text-align: center; margin-bottom: 12px; }}
+        .comp-aviso {{ font-size: 16px; color: {AMBAR}; border: 1px solid {AMBAR}; border-radius: 12px;
+                       padding: 6px 12px; text-align: center; margin-bottom: 12px; }}
+        .cifra-grande {{ font-size: 36px; font-weight: 700; color: {TEXTO}; }}
+        .cifra-grande-acento {{ font-size: 36px; font-weight: 700; color: {ACENTO}; }}
 
         /* cifras en pesos */
         .peso {{ font-size: {TAM_CIFRA}; font-style: italic; letter-spacing: 3px; color: {TEXTO}; text-align: center; }}

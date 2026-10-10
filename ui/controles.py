@@ -34,7 +34,6 @@ CONTROLES = {
     },
 }
 
-
 def _k(clave):
     return f"valor_{clave}"
 
