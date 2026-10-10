@@ -14,6 +14,7 @@ from tests.test_explicar import ClienteFalso
 def cache_temporal(monkeypatch, tmp_path):
     """Las pruebas nunca leen ni escriben el data/processed/cache.json real."""
     monkeypatch.setattr("config.RUTA_CACHE", tmp_path / "cache.json")
+    monkeypatch.setattr("config.PAUSA_ESCRITURA_SEG", 0)  # el efecto de escritura no hace falta en las pruebas
     return tmp_path / "cache.json"
 
 

@@ -1,7 +1,8 @@
-"""Streaming, límite de 4 s y respaldo. Dueño: Julian."""
+"""La explicación de la IA: caché, IA validada o plantilla, y el efecto de escritura. Dueño: Julian."""
 import contextlib
 import os
 import queue
+import re
 import threading
 import time
 
@@ -104,28 +105,12 @@ def _esperar(cola, espera, latido):
                 latido()
 
 
-def explicar(estado, anterior, cliente=None, limite=None, latido=None, modelo=None, cache=None):
-    """Generador de texto para st.write_stream.
+def _pedir_a_la_ia(estado, anterior, cliente, limite, limite_total, latido, modelo):
+    """Pide el texto completo a la IA, en silencio: nada se muestra mientras llega.
 
-    Si la primera palabra no llega en `limite` segundos, o hay cualquier error,
-    devuelve de un golpe plantilla(estado). Al terminar guarda la fuente y el
-    texto final en estado["explicacion"].
-
-    Si llega un clic nuevo mientras se escribe (Streamlit deja de leer este
-    generador), se cierra la conexión con la API y no se toca estado["explicacion"].
-
-    Antes de llamar a la API busca el estado en el caché (data/processed/cache.json):
-    si está, devuelve ese texto al instante, sin internet. `cache` permite pasar uno
-    propio; precalcular usa {} para obligar a pedirle el texto a la IA.
+    Lanza un error si la primera palabra tarda más de `limite`, si el texto completo
+    tarda más de `limite_total` o si la API falla. Siempre suelta la conexión al salir.
     """
-    guardado = buscar(estado, anterior, cache)
-    if guardado:
-        estado["explicacion"] = {"fuente": "cache", "texto": guardado}
-        yield guardado
-        return
-
-    limite = config.TIEMPO_LIMITE_IA_SEG if limite is None else limite
-    modelo = modelo or config.MODELO_IA  # el sandbox puede probar otro modelo sin tocar config.py
     cola = queue.Queue()
     cancelar = threading.Event()
     abierto = {}  # aquí el hilo deja el flujo abierto, para poder cerrarlo
@@ -133,33 +118,74 @@ def explicar(estado, anterior, cliente=None, limite=None, latido=None, modelo=No
         target=_leer_flujo, args=(cliente, estado, anterior, cola, cancelar, abierto, modelo), daemon=True
     )
     hilo.start()
-
+    fin_total = time.monotonic() + limite_total
     trozos = []
     try:
         while True:
-            item = _esperar(cola, limite if not trozos else PAUSA_MAX_SEG, latido)
+            restante = fin_total - time.monotonic()
+            if restante <= 0:
+                raise TimeoutError("la IA no terminó el texto a tiempo")
+            item = _esperar(cola, min(limite if not trozos else PAUSA_MAX_SEG, restante), latido)
             if item is _FIN:
-                break
+                return "".join(trozos).strip()
             if isinstance(item, Exception):
                 raise item
             trozos.append(item)
-            yield item
-        texto = "".join(trozos).strip()
+    finally:
+        # Siempre se suelta la API: al terminar, al fallar o porque llegó un clic nuevo.
+        _detener(cancelar, abierto)
+
+
+def _texto_aprobado(estado, anterior, cliente, limite, limite_total, latido, modelo, cache):
+    """El texto que se va a mostrar y de dónde salió: ("cache" | "llm" | "plantilla", texto).
+
+    1. Caché: si el estado ya se explicó antes (y el texto sigue pasando el validador).
+    2. IA en vivo: solo si responde a tiempo y todas sus cifras están en los datos.
+    3. Plantilla: en cualquier otro caso (sin internet, lenta, error o cifra inventada).
+    """
+    guardado = buscar(estado, anterior, cache)
+    if guardado:
+        return "cache", guardado
+    try:
+        texto = _pedir_a_la_ia(estado, anterior, cliente, limite, limite_total, latido, modelo)
         if not texto:
             raise ValueError("la IA devolvió un texto vacío")
         if not es_valido(texto, estado, anterior):
-            # El texto ya se vio en pantalla palabra por palabra; aquí no se puede borrar.
-            # Por eso se guarda la plantilla en estado["explicacion"]: ui/explicacion.render
-            # redibuja el panel con ese texto al terminar el streaming.
-            raise ValueError("la IA escribió una cifra que no está en el JSON")
-        estado["explicacion"] = {"fuente": "llm", "texto": texto}
+            raise ValueError("la IA escribió una cifra que no está en los datos")
+        return "llm", texto
     except Exception:  # noqa: BLE001  cualquier fallo cae a la plantilla
-        _detener(cancelar, abierto)
-        texto = _plantilla_segura(estado)
-        estado["explicacion"] = {"fuente": "plantilla", "texto": texto}
-        if not trozos:  # si ya se escribió algo en pantalla, no se puede borrar desde aquí
-            yield texto
-    finally:
-        # Siempre se suelta la API: al terminar bien, al caer a la plantilla
-        # o porque llegó un clic nuevo y nadie sigue leyendo este texto.
-        _detener(cancelar, abierto)
+        return "plantilla", _plantilla_segura(estado)
+
+
+def _escribir(texto, pausa):
+    """El efecto de escritura: entrega el texto ya aprobado palabra por palabra."""
+    for trozo in re.findall(r"\S+\s*", texto):  # cada palabra con el espacio que la sigue
+        yield trozo
+        if pausa:
+            time.sleep(pausa)
+
+
+def explicar(
+    estado, anterior, cliente=None, limite=None, latido=None, modelo=None, cache=None, limite_total=None, pausa=None
+):
+    """Generador de texto para st.write_stream: primero se valida, después se muestra.
+
+    La explicación sale de la primera fuente que funcione: caché, IA en vivo (si pasa el
+    validador) o plantilla. Nada se muestra hasta tener el texto completo y aprobado; luego
+    se entrega palabra por palabra, con `pausa` segundos entre palabras, sea cual sea la fuente.
+    Mientras se espera, `latido` se llama cada LATIDO_SEG para que la pantalla note un clic nuevo.
+
+    Al terminar de escribir guarda la fuente y el texto en estado["explicacion"]. Si llega un
+    clic nuevo antes (nadie sigue leyendo este generador), no se toca estado["explicacion"].
+
+    `cache` permite pasar uno propio ({} obliga a pedirle el texto a la IA). Los límites
+    salen de config.py: TIEMPO_LIMITE_IA_SEG (primera palabra) y TIEMPO_TOTAL_IA_SEG (texto completo).
+    """
+    limite = config.TIEMPO_LIMITE_IA_SEG if limite is None else limite
+    limite_total = config.TIEMPO_TOTAL_IA_SEG if limite_total is None else limite_total
+    pausa = config.PAUSA_ESCRITURA_SEG if pausa is None else pausa
+    modelo = modelo or config.MODELO_IA  # el sandbox puede probar otro modelo sin tocar config.py
+
+    fuente, texto = _texto_aprobado(estado, anterior, cliente, limite, limite_total, latido, modelo, cache)
+    yield from _escribir(texto, pausa)
+    estado["explicacion"] = {"fuente": fuente, "texto": texto}

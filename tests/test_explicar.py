@@ -57,6 +57,7 @@ def sin_cache_real(monkeypatch, tmp_path):
     y las pruebas de la API falsa dejarían de probar la API.
     """
     monkeypatch.setattr("config.RUTA_CACHE", tmp_path / "cache.json")
+    monkeypatch.setattr("config.PAUSA_ESCRITURA_SEG", 0)  # el efecto de escritura no hace falta en las pruebas
 
 
 def cargar_estado():
@@ -162,11 +163,12 @@ def test_si_hasta_la_plantilla_falla_sale_un_texto_fijo():
     assert texto == TEXTO_EMERGENCIA
 
 
-def test_cifra_inventada_cae_a_la_plantilla():
+def test_cifra_inventada_nunca_llega_a_la_pantalla():
     estado = cargar_estado()
     cliente = ClienteFalso(trozos=["Esas 22 empresas ", "pierden 31 puntos menos."])  # 31 no está en el JSON
     texto_en_pantalla = "".join(explicar(estado, None, cliente=cliente, limite=1))
-    assert "31" in texto_en_pantalla  # ya se escribió en pantalla: explicar no puede borrarlo
+    assert "31" not in texto_en_pantalla  # se validó antes de mostrar: solo se ve la plantilla
+    assert texto_en_pantalla == plantilla(cargar_estado())
     assert estado["explicacion"] == {"fuente": "plantilla", "texto": plantilla(cargar_estado())}
 
 
@@ -175,3 +177,35 @@ def test_texto_con_cifras_reales_se_queda():
     cliente = ClienteFalso(trozos=["Las 22 empresas ", "pierden 22% al año; las demás, 53%."])
     "".join(explicar(estado, None, cliente=cliente, limite=1))
     assert estado["explicacion"]["fuente"] == "llm"
+
+
+# --- Primero se valida, después se muestra ---
+
+def test_nada_se_muestra_hasta_tener_el_texto_completo():
+    estado = cargar_estado()
+    cliente = ClienteFalso(trozos=["Las 22 ", "empresas ", "pierden 22%."], pausa=0.2)  # unos 0.6 s en llegar
+    inicio = time.perf_counter()
+    primera = next(explicar(estado, None, cliente=cliente, limite=1))
+    assert time.perf_counter() - inicio >= 0.5  # la primera palabra sale cuando ya llegó todo
+    assert primera == "Las "
+
+
+def test_si_el_texto_completo_tarda_demasiado_sale_la_plantilla():
+    estado = cargar_estado()
+    cliente = ClienteFalso(trozos=["Las ", "22 ", "empresas ", "pierden ", "22%."], pausa=0.3)  # ~1.5 s
+    texto = "".join(explicar(estado, None, cliente=cliente, limite=1, limite_total=0.5))
+    assert texto == plantilla(cargar_estado())
+    assert cliente.flujo.cerrado  # se soltó la conexión con la API
+
+
+def test_el_texto_se_escribe_palabra_por_palabra():
+    trozos = list(explicar(cargar_estado(), None, cliente=ClienteFalso(trozos=["Las 22 empresas pierden 22%."]), limite=1))
+    assert trozos == ["Las ", "22 ", "empresas ", "pierden ", "22%."]
+
+
+def test_el_efecto_de_escritura_respeta_la_pausa():
+    cliente = ClienteFalso(trozos=["Las 22 empresas pierden 22%."])
+    inicio = time.perf_counter()
+    "".join(explicar(cargar_estado(), None, cliente=cliente, limite=1, pausa=0.05))
+    assert time.perf_counter() - inicio >= 0.2  # 5 palabras con 0.05 s entre cada una
+

@@ -7,6 +7,7 @@ from ia.cache import cargar, guardar, llave
 from ia.explicar import explicar
 
 LIMITE_PRECALCULO_SEG = 15  # aquí no hay público esperando: se le da más tiempo a la IA que en vivo
+LIMITE_TOTAL_PRECALCULO_SEG = 30
 
 
 def precalcular(estados, cliente=None, ruta=None, rehacer=False):
@@ -31,7 +32,11 @@ def precalcular(estados, cliente=None, ruta=None, rehacer=False):
             resumen["ya_estaban"].append(clave)
         else:
             copia = copy.deepcopy(estado)  # explicar escribe en estado["explicacion"]; el original no se toca
-            for _ in explicar(copia, anterior, cliente=cliente, limite=LIMITE_PRECALCULO_SEG, cache={}):
+            pedido = explicar(
+                copia, anterior, cliente=cliente, cache={},
+                limite=LIMITE_PRECALCULO_SEG, limite_total=LIMITE_TOTAL_PRECALCULO_SEG, pausa=0,
+            )
+            for _ in pedido:
                 pass  # se consume el generador completo, como lo haría la pantalla
             if copia["explicacion"]["fuente"] == "llm":
                 cache[clave] = {
