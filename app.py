@@ -49,12 +49,13 @@ empresa = datos["empresa"]
 html('<div class="titulo-app">Radar de Decisiones</div>')
 html(f'<div class="subtitulo">{empresa["id"]} - Plantilla {empresa["plantilla_op"]:,}</div>')
 
-col_izq, col_centro, col_der = st.columns([1, 2, 1.3], gap="large")
+col_izq, col_centro, col_der = st.columns([1.4, 2, 1.3], gap="large")
 
 # Columna izquierda: palancas
 with col_izq:
     html('<div class="titulo-col">Palancas</div>')
     palancas_movidas, cambio = render(empresa)
+    st.button("Guardar escenario")
 
 # Columna central: indicadores, gráfica, cifras en pesos
 with col_centro:

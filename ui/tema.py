@@ -55,8 +55,12 @@ def aplicar_estilos():
                        color: {TEXTO}; font-style: italic; width: 100%; }}
         .stButton button:hover {{ border-color: {ACENTO}; color: {ACENTO}; }}
 
-        .palanca-nombre {{ font-size: 22px; color: {TEXTO}; padding-top: 6px; }}
-        .palanca-valor {{ font-size: 22px; font-style: italic; color: {ACENTO}; padding-top: 6px; }}
+        .palanca-nombre {{ font-size: 20px; color: {TEXTO}; white-space: nowrap; }}
+        .palanca-valor {{ font-size: 20px; font-style: italic; color: {ACENTO}; text-align: right; white-space: nowrap; }}
+        .stButton button {{ padding: 0 4px; min-height: 36px; min-width: 36px; }}
+        [class*="st-key-menos_"] button p, [class*="st-key-mas_"] button p {{
+            font-size: 24px; font-style: normal; font-weight: 700; line-height: 1; margin: 0; }}
+        [class*="st-key-menos_"] button:hover p, [class*="st-key-mas_"] button:hover p {{ color: {ACENTO}; }}
 
         /* tabla de indicadores */
         .tabla {{ width: 100%; border-collapse: collapse; border: 3px solid {LINEA}; }}
