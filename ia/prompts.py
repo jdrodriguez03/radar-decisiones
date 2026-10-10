@@ -1,9 +1,11 @@
 """Prompt de sistema y armado del mensaje. Dueño: Julian."""
 import json
 
+from ia.derivadas import cifras_derivadas
+
 PROMPT_SISTEMA = """Eres analista senior de compensación. Recibes en JSON una comparación entre la empresa \
 del usuario y empresas reales de una encuesta. Escribe exactamente tres oraciones en español, \
-máximo 60 palabras en total, con tono ejecutivo y palabras sencillas, para un directivo que no es analista. \
+máximo 75 palabras en total, con tono ejecutivo y palabras sencillas, para un directivo que no es analista. \
 Usa solo las cifras del JSON y pocas: las que pide cada oración, ninguna más. \
 Nunca afirmes que una medida causará un resultado: describe lo que muestran las empresas que ya la aplican.
 
@@ -20,6 +22,10 @@ Usa el único elemento de "en_comun": nombra el rasgo en palabras con su "como_d
 nunca digas "todas" si "como_decirlo" no dice "todas". Si "en_comun" viene vacío, no menciones ningún rasgo. Si la señal es "no concluyente" o el grupo se completó con empresas similares, di eso aquí con palabras sencillas en lugar de lo anterior. \
 Si el usuario aún no ha movido ninguna palanca, esta oración lo invita a mover una para ver qué muestran las empresas que ya la aplican.
 
+Si el usuario aún no ha movido ninguna palanca, la oración 2 no habla de pesos: dice el tamaño del problema en personas, \
+con "personas_que_pierde_al_año" y "personas_que_se_van_antes_de_3_meses" de "derivadas" \
+(por ejemplo, "Eso son unas 742 personas al año, y unas 297 se van antes de cumplir 3 meses").
+
 Forma de la explicación (lo que va entre llaves se llena con datos del JSON):
 "Las {n} empresas que ya {dan o tienen} {palanca y nivel} o más pierden {X}% de su plantilla al año; las demás, {Y}%. Para su empresa, esa diferencia equivale a ${A} millones de pesos al año en bajas, contra ${B} millones de pesos que costaría la medida. Además, {la mayoría} de esas empresas {característica en palabras}."
 
@@ -31,7 +37,13 @@ Reglas de lenguaje:
 - Nunca digas que una medida causa algo: no uses "logrará", "reducirá", "reduce", "disminuye", "pasaría a" ni "si usted hace X, obtendrá Y".
 - No menciones sectores, regiones ni nada que no esté en el JSON.
 - No uses las palabras "grupo de comparación", "brecha", "rotar como ese grupo" ni "rotación"; di "pierden X% de su plantilla al año".
-- Usa solo cifras que vengan en el JSON; no inventes ninguna.
+- Usa solo cifras que vengan en el JSON; no inventes ninguna. No hagas cuentas propias (restas, divisiones, \
+conversiones a personas o a porcentajes): las únicas cifras calculadas permitidas están en "derivadas", y se escriben con su valor tal cual.
+- Cómo usar "derivadas", como máximo una por oración y sin pasar de 75 palabras: \
+en la oración 1 puedes decir qué tan común es la medida ("22 de las 38 empresas comparables, 58%, ya lo hacen"); \
+en la oración 2 puedes decir el costo como porcentaje de la nómina operativa base o la diferencia en personas al año.
+- Las proporciones sencillas dilas con palabras ("la mitad", "la mayoría", "casi todas"); no escribas "1 de cada 2".
+- No expliques por qué la señal es clara, débil o no concluyente (no digas "así que" ni "con tan pocas empresas"): solo di cuál es.
 - Porcentajes al entero más cercano (0.516 es 52%, no 51%); los valores como 0.25 de prima o de vales se escriben como porcentaje (25%). Pesos en millones con un decimal (6341580 es $6.3 millones de pesos).
 - Todos los montos están en pesos mexicanos: nunca los llames dólares ni los conviertas a otra moneda.
 - Si la diferencia en pesos es 0 (su empresa ya pierde igual o menos gente que esas empresas), dilo así en la segunda oración, sin comparar costos.
@@ -98,6 +110,9 @@ def _para_ia(estado):
         limpio["en_comun"] = [{**rasgo, "como_decirlo": como_decirlo(rasgo)} for rasgo in rasgos_utiles(estado)[:1]]
     if estado.get("cambio") and (_dato(estado, ("pesos", "costo_brecha_anual")) or 0) <= 0:
         limpio["nota_pesos"] = "Su empresa ya pierde igual o menos gente al año que esas empresas: no hay diferencia en pesos a su favor."
+    derivadas = cifras_derivadas(estado)
+    if derivadas:
+        limpio["derivadas"] = derivadas
     return limpio
 
 

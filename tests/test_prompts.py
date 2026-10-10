@@ -87,3 +87,17 @@ def test_el_estado_inicial_no_cuenta_como_paso_anterior():
     assert "Qué cambió" not in mensaje  # no debe decir "antes 39"
     assert "primera comparación" in mensaje
 
+
+
+def test_el_mensaje_lleva_las_metricas_precalculadas():
+    mensaje = armar_mensaje(cargar("01_aguinaldo"), None)
+    assert '"derivadas"' in mensaje
+    assert '"porcentaje_de_la_nomina_base"' in mensaje
+
+
+def test_el_prompt_pide_maximo_75_palabras_y_sin_cuentas_propias():
+    from ia.prompts import PROMPT_SISTEMA
+
+    assert "máximo 75 palabras" in PROMPT_SISTEMA
+    assert "No hagas cuentas propias" in PROMPT_SISTEMA
+    assert "1 de cada 2" in PROMPT_SISTEMA  # la regla que pide decir "la mitad" con palabras
