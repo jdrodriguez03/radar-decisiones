@@ -49,6 +49,16 @@ class ClienteFalso:
         return self.flujo
 
 
+@pytest.fixture(autouse=True)
+def sin_cache_real(monkeypatch, tmp_path):
+    """Cada prueba usa un caché vacío en una carpeta temporal, nunca data/processed/cache.json.
+
+    Sin esto, cuando exista el caché real, explicar devolvería el texto guardado
+    y las pruebas de la API falsa dejarían de probar la API.
+    """
+    monkeypatch.setattr("config.RUTA_CACHE", tmp_path / "cache.json")
+
+
 def cargar_estado():
     return json.loads(RUTA_EJEMPLO.read_text(encoding="utf-8"))
 
