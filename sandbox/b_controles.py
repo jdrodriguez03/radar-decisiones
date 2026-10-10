@@ -7,7 +7,6 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import config
 from ui.controles import render
 from ui.tema import aplicar_estilos
 
