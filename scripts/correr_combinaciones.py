@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import date
+from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
@@ -198,20 +198,29 @@ def texto_palancas(palancas):
 def a_markdown(filas, supuestos):
     con_alerta = [f for f in filas if f["alertas"]]
     guion = [f for f in filas if f["revision_guion"]]
+    # Fecha local con zona horaria explícita (la regla DTZ de ruff no acepta date.today())
+    hoy = datetime.now(timezone.utc).astimezone().date().isoformat()
     lineas = [
         "# Resultados de las 20 combinaciones",
         "",
-        f"Generado por scripts/correr_combinaciones.py el {date.today().isoformat()}. "
-        f"Costo por baja: ${supuestos['costo_por_baja']:,}; "
-        f"costo mensual por ruta: ${supuestos['costo_ruta_mensual']:,}.",
+        (
+            f"Generado por scripts/correr_combinaciones.py el {hoy}. "
+            f"Costo por baja: ${supuestos['costo_por_baja']:,}; "
+            f"costo mensual por ruta: ${supuestos['costo_ruta_mensual']:,}."
+        ),
         "",
-        f"**Resumen:** {len(filas)} casos corridos, {len(con_alerta)} con alerta, "
-        f"{sum(f['completado'] for f in filas)} con grupo completado.",
+        (
+            f"**Resumen:** {len(filas)} casos corridos, {len(con_alerta)} con alerta, "
+            f"{sum(f['completado'] for f in filas)} con grupo completado."
+        ),
         "",
         "## Tabla",
         "",
-        "| Caso | Empresa | Palancas movidas | n grupo | n resto | Rot. empresa | Rot. grupo "
-        "| Rot. resto | Señal | Completado | Costo medida | Costo brecha | Alertas |",
+        (
+            "| Caso | Empresa | Palancas movidas | n grupo | n resto | Rot. empresa "
+            "| Rot. grupo | Rot. resto | Señal | Completado | Costo medida "
+            "| Costo brecha | Alertas |"
+        ),
         "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for f in filas:
