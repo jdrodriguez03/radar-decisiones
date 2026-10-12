@@ -1,3 +1,5 @@
+import time
+
 import streamlit as st
 
 EPS = 1e-9
@@ -34,6 +36,7 @@ CONTROLES = {
     },
 }
 
+
 def _k(clave):
     return f"valor_{clave}"
 
@@ -59,8 +62,14 @@ def _iniciar(perfil):
         st.session_state["_empresa_id"] = perfil["id"]
 
 
+def _marcar_click():
+    """Guarda el instante del clic; el panel lo usa para medir cuánto tarda en redibujar."""
+    st.session_state["_t_click"] = time.perf_counter()
+
+
 def _registrar(clave):
     """Guarda la última palanca movida: valor de (anterior) y a (nuevo)."""
+    _marcar_click()
     de = st.session_state["_previos"][clave]
     a = st.session_state[_k(clave)]
     if abs(a - de) > EPS:
@@ -69,6 +78,7 @@ def _registrar(clave):
 
 
 def _paso(clave, signo):
+    _marcar_click()
     cfg = CONTROLES[clave]
     lo, hi = st.session_state["_rangos"][clave]
     nuevo = st.session_state[_k(clave)] + signo * cfg["paso"]
@@ -77,6 +87,7 @@ def _paso(clave, signo):
 
 
 def _restablecer():
+    _marcar_click()
     reales = st.session_state["_reales"]
     for c, v in reales.items():
         st.session_state[_k(c)] = v
