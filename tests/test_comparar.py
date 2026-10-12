@@ -36,7 +36,8 @@ def test_senal_es_no_aplica_si_el_resto_esta_vacio(empresas):
 
     assert senal(grupo, resto) == {"etiqueta": "no aplica", "p": None}
 
-# test para verificar que la función comparar filtra correctamente por tamaño cuando solo_tamano es True.
+# se prueba que la función comparar con el parámetro solo_tamano=True filtra 
+# correctamente las empresas para que el grupo y el resto tengan tamaños similares.
 def test_comparar_solo_tamano_filtra_la_misma_banda(empresas):
     resultado = comparar(
         empresas,
