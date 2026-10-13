@@ -1,2 +1,146 @@
 # Las 20 combinaciones de la demo. Dueño: Juanes.
 # Se llena en el bloque 3 (día 5).
+# Cada caso dice: qué empresa se elige y a qué valor se mueven las palancas.
+# Solo se escriben las palancas MOVIDAS; las demás se quedan en el valor real
+# de la empresa y no filtran el grupo.
+#
+# Nombres de palancas (iguales a config.PALANCAS):
+#   sal_dia_ini  salario diario inicial en pesos ($250 a $380, pasos de 10)
+#   aguinaldo_op días de aguinaldo (15 a 32)
+#   prima_vac_op prima vacacional como proporción (0.25 = 25% ... 1.00 = 100%)
+#   vales_op     vales de despensa como proporción (0.06 = 6% ... 0.12 = 12%)
+#   rutas_x100   rutas por cada 100 operativos (0 a 10.8)
+#
+# "esperado" es opcional: si está, el script revisa que el motor dé esas cifras
+# (n del grupo y rotación anual de grupo y resto, redondeadas a 2 decimales).
+
+casos:
+  # --- 1. Los tres pasos del guion (COMPAÑIA 36) -----------------------------
+  - id: G1
+    tipo: guion
+    descripcion: "Guion paso 1: aguinaldo de 15 a 20 días"
+    empresa: COMPAÑIA 36
+    palancas: {aguinaldo_op: 20}
+    esperado: {n_grupo: 22, rot_grupo: 0.22, rot_resto: 0.53}
+
+  - id: G2
+    tipo: guion
+    descripcion: "Guion paso 2: además, prima vacacional a 50%"
+    empresa: COMPAÑIA 36
+    palancas: {aguinaldo_op: 20, prima_vac_op: 0.50}
+    esperado: {n_grupo: 16, rot_grupo: 0.17, rot_resto: 0.43}
+
+  - id: G3
+    tipo: guion
+    descripcion: "Guion paso 3: además, salario inicial a $350"
+    empresa: COMPAÑIA 36
+    palancas: {aguinaldo_op: 20, prima_vac_op: 0.50, sal_dia_ini: 350}
+    esperado: {n_grupo: 5, rot_grupo: 0.12, rot_resto: 0.38}
+
+  # --- 2. Cada palanca sola para COMPAÑIA 36 ---------------------------------
+  # (el aguinaldo solo ya está en G1)
+  - id: S1
+    tipo: palanca sola
+    descripcion: "Solo salario inicial a $340"
+    empresa: COMPAÑIA 36
+    palancas: {sal_dia_ini: 340}
+
+  - id: S2
+    tipo: palanca sola
+    descripcion: "Solo prima vacacional a 50%"
+    empresa: COMPAÑIA 36
+    palancas: {prima_vac_op: 0.50}
+
+  - id: S3
+    tipo: palanca sola
+    descripcion: "Solo vales de despensa a 10%"
+    empresa: COMPAÑIA 36
+    palancas: {vales_op: 0.10}
+
+  - id: S4
+    tipo: palanca sola
+    descripcion: "Solo rutas a 5 por cada 100 operativos"
+    empresa: COMPAÑIA 36
+    palancas: {rutas_x100: 5}
+
+  # --- 3. Dos combinaciones de dos palancas ----------------------------------
+  - id: D1
+    tipo: dos palancas
+    descripcion: "Aguinaldo a 20 y vales a 10%"
+    empresa: COMPAÑIA 36
+    palancas: {aguinaldo_op: 20, vales_op: 0.10}
+
+  - id: D2
+    tipo: dos palancas
+    descripcion: "Prima a 50% y rutas a 5"
+    empresa: COMPAÑIA 36
+    palancas: {prima_vac_op: 0.50, rutas_x100: 5}
+
+  # --- 4. Extremos de los rangos (COMPAÑIA 36) -------------------------------
+  - id: E1
+    tipo: extremo
+    descripcion: "Salario inicial al máximo ($380)"
+    empresa: COMPAÑIA 36
+    palancas: {sal_dia_ini: 380}
+
+  - id: E2
+    tipo: extremo
+    descripcion: "Aguinaldo al máximo (32 días)"
+    empresa: COMPAÑIA 36
+    palancas: {aguinaldo_op: 32}
+
+  - id: E3
+    tipo: extremo
+    descripcion: "Prima vacacional al máximo (100%)"
+    empresa: COMPAÑIA 36
+    palancas: {prima_vac_op: 1.00}
+
+  - id: E4
+    tipo: extremo
+    descripcion: "Rutas al máximo (10.8 por cada 100)"
+    empresa: COMPAÑIA 36
+    palancas: {rutas_x100: 10.8}
+
+  - id: E5
+    tipo: extremo
+    descripcion: "Vales al mínimo (6%), por debajo del valor real"
+    empresa: COMPAÑIA 36
+    palancas: {vales_op: 0.06}
+
+  # --- 5. Empresa de respaldo: COMPAÑIA 29 -----------------------------------
+  - id: R29-1
+    tipo: respaldo
+    descripcion: "COMPAÑIA 29: prima vacacional de 40% a 50%"
+    empresa: COMPAÑIA 29
+    palancas: {prima_vac_op: 0.50}
+
+  - id: R29-2
+    tipo: respaldo
+    descripcion: "COMPAÑIA 29: salario inicial a $320"
+    empresa: COMPAÑIA 29
+    palancas: {sal_dia_ini: 320}
+
+  - id: R29-3
+    tipo: respaldo
+    descripcion: "COMPAÑIA 29: prima a 50% y rutas a 3"
+    empresa: COMPAÑIA 29
+    palancas: {prima_vac_op: 0.50, rutas_x100: 3}
+
+  # --- 6. Empresa de respaldo: COMPAÑIA 15 -----------------------------------
+  - id: R15-1
+    tipo: respaldo
+    descripcion: "COMPAÑIA 15: vales de despensa a 8%"
+    empresa: COMPAÑIA 15
+    palancas: {vales_op: 0.08}
+
+  - id: R15-2
+    tipo: respaldo
+    descripcion: "COMPAÑIA 15: rutas a 2 por cada 100"
+    empresa: COMPAÑIA 15
+    palancas: {rutas_x100: 2}
+
+  - id: R15-3
+    tipo: respaldo
+    descripcion: "COMPAÑIA 15: salario inicial a $350"
+    empresa: COMPAÑIA 15
+    palancas: {sal_dia_ini: 350}
