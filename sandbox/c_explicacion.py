@@ -16,6 +16,7 @@ import config
 from ia.explicar import explicar
 from ia.plantilla import plantilla
 from ia.prompts import armar_mensaje
+from ia.validador import cifras_inventadas
 
 # Pasos del guion: nombre visible -> (fixture actual, fixture del paso anterior)
 PASOS = {
@@ -82,16 +83,18 @@ def sin_latex(generador):
         yield trozo.replace("$", r"\$")
 
 
-def revision_rapida(texto, estado):
-    """Lo que se puede revisar a simple vista: oraciones, palabras, palabras prohibidas y el n."""
+def revision_rapida(texto, estado, anterior=None):
+    """Lo que se puede revisar a simple vista: oraciones, palabras, palabras prohibidas, el n y las cifras."""
     oraciones = [o for o in re.split(r"(?<=[.!?])\s+", texto.strip()) if o]
     prohibidas = [p for p in PALABRAS_PROHIBIDAS if p in texto.lower()]
     n = str(estado["grupo"]["n"])
+    inventadas = cifras_inventadas(texto, estado, anterior)
     return [
         ("Oraciones (máx. 3)", len(oraciones), len(oraciones) <= 3),
         ("Palabras (máx. 75)", len(texto.split()), len(texto.split()) <= 75),
         ("Menciona el n del grupo", n, n in texto),
         ("Palabras prohibidas", ", ".join(prohibidas) or "ninguna", not prohibidas),
+        ("Cifras que no están en el JSON", ", ".join(f"{c:g}" for c in inventadas) or "ninguna", not inventadas),
     ]
 
 
@@ -122,6 +125,9 @@ with col_ia:
         horizontal=True,
     )
     modelo = st.selectbox("Modelo", list(dict.fromkeys(MODELOS)), disabled=modo != "API real")
+    ignorar_cache = st.checkbox(
+        "Ignorar el caché (pedirle el texto a la IA aunque esté guardado)", disabled=modo != "API real"
+    )
     st.subheader(f"Respuesta de {modelo}" if modo == "API real" else "Respuesta")
     if st.button("Generar explicación", type="primary"):
         if modo == "Simulado (plantilla)":
@@ -129,7 +135,10 @@ with col_ia:
         else:
             cliente = ClienteLento() if modo.startswith("API lenta") else None
             pulso = st.empty()  # marcador invisible: tocarlo deja que Streamlit note un clic nuevo
-            generador = explicar(estado, anterior, cliente=cliente, latido=pulso.empty, modelo=modelo)
+            generador = explicar(
+                estado, anterior, cliente=cliente, latido=pulso.empty, modelo=modelo,
+                cache={} if ignorar_cache or cliente else None,  # la API lenta siempre prueba la API
+            )
         tiempos = {}
         st.write_stream(sin_latex(con_tiempos(generador, tiempos)))
         fuente = estado["explicacion"]["fuente"] if modo != "Simulado (plantilla)" else "simulado"
@@ -140,7 +149,7 @@ with col_ia:
 
         texto = estado["explicacion"]["texto"] if modo != "Simulado (plantilla)" else plantilla(estado)
         st.markdown("**Revisión rápida**")
-        for regla, valor, cumple in revision_rapida(texto, estado):
+        for regla, valor, cumple in revision_rapida(texto, estado, anterior):
             st.write(f"{'✅' if cumple else '❌'} {regla}: {valor}")
         st.caption("Para docs/pruebas_ia.md, copia el texto de abajo:")
         st.code(texto, language="text")

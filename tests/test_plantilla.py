@@ -1,4 +1,7 @@
 import json
+import re
+
+import pytest
 
 from config import RUTA_EJEMPLO, RUTA_FIXTURES
 from ia.plantilla import fmt_pct, fmt_pesos, plantilla
@@ -23,7 +26,7 @@ def test_formatos():
 def test_brecha_en_cero():
     estado = cargar_ejemplo()
     estado["pesos"]["costo_brecha_anual"] = 0
-    assert "ya rota menos" in plantilla(estado)
+    assert "ya pierde igual o menos gente" in plantilla(estado)
 
 
 def test_estado_inicial_sin_cambio():
@@ -32,3 +35,35 @@ def test_estado_inicial_sin_cambio():
     assert "52%" in texto  # lo que pierde hoy la empresa
     assert "39 empresas" in texto
     assert "36%" in texto
+
+
+# --- La plantilla habla igual que el prompt: es lo que ve el público cuando la IA falla ---
+
+PROHIBIDAS = ["logrará", "reducirá", "reduce", "disminuye", "promedio", "pasaría a", "obtendrá",
+              "grupo de comparación", "brecha", "rotación", "rotar", "sector"]
+
+
+@pytest.mark.parametrize("fixture", sorted(p.stem for p in RUTA_FIXTURES.glob("*.json")))
+def test_cumple_las_reglas_del_prompt(fixture):
+    texto = plantilla(json.loads((RUTA_FIXTURES / f"{fixture}.json").read_text(encoding="utf-8")))
+    oraciones = [o for o in re.split(r"(?<=[.!?])\s+", texto) if o]
+    assert len(oraciones) <= 3
+    assert len(texto.split()) <= 75
+    assert not [p for p in PROHIBIDAS if p in texto.lower()]
+
+
+def test_nombra_todas_las_palancas_movidas():
+    texto = plantilla(json.loads((RUTA_FIXTURES / "03_salario.json").read_text(encoding="utf-8")))
+    assert "aguinaldo" in texto and "prima vacacional" in texto and "salario inicial" in texto
+
+
+def test_avisa_si_el_grupo_se_completo():
+    estado = json.loads((RUTA_FIXTURES / "03_salario.json").read_text(encoding="utf-8"))
+    estado["grupo"]["completado"] = True
+    assert "se completó con empresas parecidas" in plantilla(estado)
+
+
+def test_estado_inicial_dice_el_problema_en_personas():
+    texto = plantilla(json.loads((RUTA_FIXTURES / "05_inicial.json").read_text(encoding="utf-8")))
+    assert "742 personas" in texto and "297" in texto
+
