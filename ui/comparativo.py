@@ -6,10 +6,12 @@ import streamlit as st
 
 from ui import procedencia
 from ui.controles import CONTROLES
-from ui.tema import ACENTO, GRIS, LINEA, TEXTO
+from ui.tema import ACENTO, AMBAR, GRIS, LINEA, TEXTO
 
 COL_ID = "empresa"
 COL_Y = "rot_anual"
+
+EPS = 1e-9
 
 FORMATO_X = {
     "sal_dia_ini": "$,.0f",
@@ -77,6 +79,7 @@ def _fmt(valor):
 def render(datos):
     """Comparativo: empresa, grupo y resto en grande, con encabezado y aviso de grupo completado."""
     grupo = datos["grupo"]
+
     ind_resto = (datos.get("resto") or {}).get("indicadores") or {}
 
     _html(f'<div class="comp-encabezado">Comparando con {grupo["n"]} empresas reales</div>')
@@ -89,6 +92,7 @@ def render(datos):
         emp = datos["empresa"]["indicadores"][clave]
         gru = (grupo.get("indicadores") or {}).get(clave)
         res = ind_resto.get(clave)
+        # En los tres indicadores un valor menor es mejor
         clase_grupo = "cifra-grande-acento" if gru is not None and gru < emp else "cifra-grande"
         filas += (
             f'<tr><td class="nombre">{nombre}</td>'
@@ -102,21 +106,38 @@ def render(datos):
     )
 
 
+def mostrar_figura(fig, nombre_archivo):
+    """Muestra una figura con las herramientas de siempre (zoom, captura, pantalla completa)."""
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={
+            "displaylogo": False,
+            "toImageButtonOptions": {"format": "png", "filename": nombre_archivo, "scale": 2},
+        },
+    )
+
+
 def _norm(texto):
     """Compara nombres sin importar mayúsculas, espacios ni acentos (COMPAÑÍA = Compania)."""
     descompuesto = unicodedata.normalize("NFD", str(texto).strip().upper())
     return "".join(c for c in descompuesto if unicodedata.category(c) != "Mn")
 
 
-def preparar_dispersion(datos, empresas, palanca_x):
-    """Separa las empresas en grupo, resto, otras y la empresa elegida (según los ids del estado)."""
-    faltan = [c for c in (COL_ID, COL_Y, palanca_x) if c not in empresas.columns]
+def preparar_dispersion(datos, empresas, palancas=None):
+    """Separa las empresas en grupo, resto, otras y la empresa elegida (según los ids del estado).
+
+    palancas: una clave, una lista de claves o None; son las columnas de palancas que se conservan.
+    """
+    lista = [palancas] if isinstance(palancas, str) else list(palancas or [])
+    columnas = [COL_ID, COL_Y, *lista]
+    faltan = [c for c in columnas if c not in empresas.columns]
     if faltan:
         raise KeyError(
             f"empresas.parquet no tiene las columnas {faltan}. "
             f"Columnas disponibles: {list(empresas.columns)}"
         )
-    df = empresas[[COL_ID, palanca_x, COL_Y]].copy()
+    df = empresas[columnas].copy()
     df["_id"] = df[COL_ID].map(_norm)
 
     ids_grupo = {_norm(i) for i in (datos["grupo"].get("ids") or [])}
@@ -125,11 +146,9 @@ def preparar_dispersion(datos, empresas, palanca_x):
 
     elegida = df[propia]
     if elegida.empty:
-        elegida = pd.DataFrame({
-            COL_ID: [datos["empresa"]["id"]],
-            palanca_x: [datos["empresa"]["palancas"][palanca_x]],
-            COL_Y: [datos["empresa"]["indicadores"]["rot_anual"]],
-        })
+        fila = {COL_ID: [datos["empresa"]["id"]], COL_Y: [datos["empresa"]["indicadores"]["rot_anual"]]}
+        fila.update({p: [datos["empresa"]["palancas"][p]] for p in lista})
+        elegida = pd.DataFrame(fila)
     return {
         "grupo": df[df["_id"].isin(ids_grupo) & ~propia],
         "resto": df[df["_id"].isin(ids_resto) & ~propia],
@@ -174,7 +193,6 @@ def dispersion(datos, empresas, palanca_x, valor_x):
 
     fig.add_vline(x=valor_x, line_dash="dot", line_color=TEXTO)
 
-
     medianas = [
         ("grupo", ACENTO, grupos["grupo"][COL_Y].median(), "top right"),
         ("resto", GRIS, grupos["resto"][COL_Y].median(), "bottom right"),
@@ -199,4 +217,147 @@ def dispersion(datos, empresas, palanca_x, valor_x):
                "gridcolor": LINEA, "zeroline": False},
         yaxis={"title": "Rotación anual", "tickformat": ".0%", "gridcolor": LINEA, "zeroline": False},
     )
-    st.plotly_chart(fig, use_container_width=True)
+    mostrar_figura(fig, "rotacion_por_palanca")
+
+
+def _base_layout(fig, altura):
+    fig.update_layout(
+        height=altura,
+        margin={"l": 10, "r": 10, "t": 10, "b": 10},
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font={"color": TEXTO, "family": "Nunito, sans-serif", "size": 13},
+    )
+
+
+def distribucion_rotacion(datos, empresas, altura=330):
+    """B. Distribución de la rotación anual: grupo contra resto, con la empresa elegida."""
+    grupos = preparar_dispersion(datos, empresas)
+    e = grupos["elegida"]
+    rot_empresa = e[COL_Y].iloc[0]
+    nombre_e = str(e[COL_ID].iloc[0])
+
+    fig = go.Figure()
+    capas = [
+        (f"Grupo<br>(n={len(grupos['grupo'])})", ACENTO, grupos["grupo"]),
+        (f"Resto<br>(n={len(grupos['resto'])})", GRIS, grupos["resto"]),
+    ]
+    for nombre, color, df in capas:
+        if df.empty:
+            continue
+        fig.add_trace(go.Box(
+            y=df[COL_Y], name=nombre, boxpoints="all", jitter=0.5, pointpos=0,
+            marker={"color": color, "size": 6}, line={"color": color}, fillcolor="rgba(0,0,0,0)",
+            hovertext=df[COL_ID], hoverinfo="text+y",
+        ))
+        fig.add_annotation(
+            x=nombre, y=df[COL_Y].median(), text=f"Mediana {df[COL_Y].median():.0%}",
+            showarrow=False, xanchor="left", xshift=34, yshift=14, font={"color": color},
+        )
+
+    fig.add_trace(go.Scatter(
+        x=[nombre_e], y=[rot_empresa], mode="markers", name=nombre_e,
+        hovertext=[nombre_e], hovertemplate="<b>%{hovertext}</b><br>Rotación anual: %{y:.1%}<extra></extra>",
+        marker={"size": 18, "symbol": "diamond", "color": TEXTO, "line": {"color": ACENTO, "width": 2}},
+    ))
+    fig.add_hline(y=rot_empresa, line_dash="dot", line_color=TEXTO)
+
+    _base_layout(fig, altura)
+    fig.update_layout(showlegend=False)
+    fig.update_xaxes(tickangle=0)
+    fig.update_yaxes(title_text="Rotación anual", tickformat=".0%", gridcolor=LINEA, zeroline=False)
+    mostrar_figura(fig, "distribucion_rotacion")
+
+
+def palancas_grupo(datos, empresas, niveles, altura=330):
+    """C. Qué hace distinto el grupo: mediana de cada palanca (grupo, resto) y dónde está la empresa.
+
+    Cada palanca se pone en una escala común de percentil entre las 40 empresas: 0% = el valor más bajo,
+    100% = el más alto, 50% = la del medio. Los percentiles no se estiran por valores atípicos.
+    niveles: valor actual de cada palanca en el escenario.
+    """
+    claves = list(CONTROLES)
+    grupos = preparar_dispersion(datos, empresas, claves)
+    todas = empresas[claves]
+    reales = datos["empresa"]["palancas"]
+    nombres = [CONTROLES[c]["nombre"] for c in claves]
+
+    def pos(clave, valor):
+        """Percentil del valor entre las 40 empresas; los empates cuentan por la mitad."""
+        col = todas[clave]
+        return float(((col < valor).sum() + 0.5 * (col == valor).sum()) / len(col))
+
+    def puntos(nombre_serie, valores, color, simbolo="circle", tam=13, borde=None):
+        xs = [pos(c, valores[c]) for c in claves]
+        textos = [f"{nombre_serie} · {CONTROLES[c]['nombre']}: {CONTROLES[c]['fmt'](valores[c])}" for c in claves]
+        marcador = {"size": tam, "symbol": simbolo, "color": color}
+        if borde:
+            marcador["line"] = {"color": borde, "width": 2}
+        return xs, go.Scatter(
+            x=xs, y=nombres, mode="markers", name=nombre_serie, hovertext=textos, hoverinfo="text",
+            marker=marcador,
+        )
+
+    med_grupo = {c: grupos["grupo"][c].median() for c in claves}
+    hay_resto = not grupos["resto"].empty
+    med_resto = {c: grupos["resto"][c].median() for c in claves} if hay_resto else None
+
+    fig = go.Figure()
+
+    if hay_resto:
+        lx, ly = [], []
+        for c, n in zip(claves, nombres):
+            lx += [pos(c, med_grupo[c]), pos(c, med_resto[c]), None]
+            ly += [n, n, None]
+        fig.add_trace(go.Scatter(x=lx, y=ly, mode="lines", line={"color": LINEA, "width": 3},
+                                 hoverinfo="skip", showlegend=False))
+
+    series = [puntos("Grupo (mediana)", med_grupo, ACENTO)]
+    if hay_resto:
+        series.append(puntos("Resto (mediana)", med_resto, GRIS))
+    series.append(puntos("Empresa hoy", reales, TEXTO, "diamond", 17, ACENTO))
+    movidas = {c: v for c, v in niveles.items() if abs(v - reales[c]) > EPS}
+    # Escenarios fuera de lo observado: el percentil se queda en 0% o 100%, así que se avisa
+    fuera = [c for c in movidas if movidas[c] < todas[c].min() - EPS or movidas[c] > todas[c].max() + EPS]
+    if movidas:
+        xs = [pos(c, movidas[c]) for c in movidas]
+        textos = [
+            f"Empresa con el escenario · {CONTROLES[c]['nombre']}: {CONTROLES[c]['fmt'](v)}"
+            + (" (fuera del rango observado)" if c in fuera else "")
+            for c, v in movidas.items()
+        ]
+        fig.add_trace(go.Scatter(
+            x=xs, y=[CONTROLES[c]["nombre"] for c in movidas], mode="markers",
+            name="Empresa con el escenario", hovertext=textos, hoverinfo="text",
+            marker={"size": 17, "symbol": "diamond-open", "color": AMBAR, "line": {"color": AMBAR, "width": 3}},
+        ))
+    for _, traza in series:
+        fig.add_trace(traza)
+
+    _base_layout(fig, altura)
+    fig.update_layout(legend={"orientation": "h", "y": -0.25})
+    fig.update_xaxes(
+        title_text="Percentil entre las 40 empresas", tickformat=".0%",
+        gridcolor=LINEA, zeroline=False, range=[-0.05, 1.05],
+    )
+    fig.update_yaxes(autorange="reversed", gridcolor=LINEA)
+    mostrar_figura(fig, "palancas_grupo")
+    st.caption("0% = valor más bajo entre las 40 empresas · 100% = valor más alto")
+    for c in fuera:
+        cfg = CONTROLES[c]
+        st.markdown(
+            procedencia.supuesto(
+                f"⚠ {cfg['nombre']}: {cfg['fmt'](movidas[c])} está fuera del rango observado en las 40 empresas "
+                f"({cfg['fmt'](todas[c].min())} a {cfg['fmt'](todas[c].max())}); se muestra en el extremo."
+            ),
+            unsafe_allow_html=True,
+        )
+
+
+def en_comun(datos):
+    """Lo que el grupo tiene en común."""
+    for item in datos.get("en_comun") or []:
+        st.markdown(
+            procedencia.observado(f'{item["texto"]}: grupo {item["grupo"]} · resto {item["resto"]}'),
+            unsafe_allow_html=True,
+        )
