@@ -1,6 +1,5 @@
 import streamlit as st
 
-# Tema oscuro (config.toml) aplicado a la estructura de la plantilla
 FONDO = "#0B0F14"      # fondo casi negro
 SUPERFICIE = "#132217" # pastillas, encabezado de tabla, triángulo oscuro
 TRIANGULO = "#1E5A4A"  # triángulo secundario
@@ -10,7 +9,7 @@ ACENTO = "#46D3AA"     # único color de resalte: títulos y cifra del grupo
 GRIS = "#8B949E"       # textos secundarios
 AMBAR = "#D29922"      # para valores supuestos
 
-# Tamaños de letra (pensados para proyector)
+
 TAM_CIFRA = "40px"
 TAM_TITULO = "44px"
 TAM_TEXTO = "18px"
@@ -78,6 +77,8 @@ def aplicar_estilos():
                        padding: 6px 12px; text-align: center; margin-bottom: 12px; }}
         .cifra-grande {{ font-size: 36px; font-weight: 700; color: {TEXTO}; }}
         .cifra-grande-acento {{ font-size: 36px; font-weight: 700; color: {ACENTO}; }}
+
+        .grafica-titulo {{ font-size: 16px; font-weight: 600; color: {TEXTO}; text-align: center; margin: 10px 0 2px; }}
 
         /* cifras en pesos */
         .peso {{ font-size: {TAM_CIFRA}; font-style: italic; letter-spacing: 3px; color: {TEXTO}; text-align: center; }}
