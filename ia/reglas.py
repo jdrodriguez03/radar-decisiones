@@ -10,8 +10,6 @@ Lo usan scripts/probar_ia.py (para revisar los 15 textos) y tests/test_reglas_ia
 """
 import re
 
-from ia.validador import extraer_numeros
-
 MAX_ORACIONES = 3
 MAX_PALABRAS = 75
 
@@ -44,6 +42,17 @@ def _usa(texto, palabra):
     return re.search(r"(?<!\w)" + re.escape(palabra), texto, flags=re.IGNORECASE) is not None
 
 
+def menciona_n(texto, n):
+    """True si el texto dice "N empresas" ("Las 22 empresas", "quedan 16 empresas").
+
+    No basta con que el número aparezca: en el guion el grupo es de 22 empresas y pierden 22%,
+    así que un texto sin "22 empresas" pasaría por el 22%. También acepta la forma de
+    derivadas: "22 de las 38 empresas".
+    """
+    patron = rf"(?<![\d.,]){int(n)}(?:\s+de\s+las\s+\d+)?\s+empresas"
+    return re.search(patron, texto, flags=re.IGNORECASE) is not None
+
+
 def necesita_advertencia(estado):
     grupo = estado.get("grupo") or {}
     return (estado.get("senal") or {}).get("etiqueta") == "no concluyente" or bool(grupo.get("completado"))
@@ -53,7 +62,7 @@ def revisar(texto, estado):
     """Lista de reglas que el texto NO cumple. Lista vacía = el texto está bien."""
     fallas = []
     n = (estado.get("grupo") or {}).get("n")
-    if estado.get("cambio") and n is not None and float(n) not in extraer_numeros(texto):
+    if estado.get("cambio") and n is not None and not menciona_n(texto, n):
         fallas.append(f"no menciona las {n} empresas del grupo")
     for palabra in PROHIBIDAS:
         if _usa(texto, palabra):
