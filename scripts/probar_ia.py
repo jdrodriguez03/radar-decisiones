@@ -4,6 +4,7 @@ Qué hace, caso por caso:
 1. Arma el estado real con motor.api.calcular_estado (la misma función que usa la app).
 2. Le pide la explicación a la IA, sin caché y sin plantilla: queremos ver lo que escribe la IA.
 3. Revisa el texto dos veces: cifras (ia/validador.py) y forma (ia/reglas.py).
+   Además dice qué vería el jurado en vivo: el texto de la IA o la plantilla.
 4. Guarda todo en docs/textos_ia.json (lo lee tests/test_reglas_ia.py) e imprime
    una tabla en Markdown para pegar en docs/pruebas_ia.md.
 
@@ -23,7 +24,7 @@ import yaml
 
 import config
 from ia.explicar import _pedir_a_la_ia
-from ia.reglas import revisar
+from ia.reglas import fallas_graves, revisar
 from ia.validador import cifras_inventadas
 from motor.api import calcular_estado
 from motor.datos import cargar
@@ -70,19 +71,31 @@ def probar(caso_id, estado, anterior, cliente=None):
         "palabras": len(texto.split()),
         "cifras_inventadas": cifras_inventadas(texto, estado, anterior) if texto else [],
         "reglas_fallidas": revisar(texto, estado) if texto else ["sin texto"],
+        "en_vivo": en_vivo(texto, estado, anterior),
         "estado": estado,  # se guarda para que la prueba pueda revisar el texto sin llamar a la IA
     }
 
 
+def en_vivo(texto, estado, anterior):
+    """Qué vería el jurado: "IA" si el texto pasa las mismas revisiones que ia/explicar.py, si no "plantilla".
+
+    En vivo solo tumban un texto las cifras inventadas y las fallas graves (causa o advertencia
+    faltante); el largo y la jerga no. Por eso un caso puede fallar aquí y aun así salir la IA.
+    """
+    if texto and not cifras_inventadas(texto, estado, anterior) and not fallas_graves(texto, estado):
+        return "IA"
+    return "plantilla"
+
+
 def tabla_markdown(resultados):
     filas = [
-        "| Caso | Palabras | Segundos | Cifras | Reglas |",
-        "|---|---|---|---|---|",
+        "| Caso | Palabras | Segundos | Cifras | Reglas | En vivo saldría |",
+        "|---|---|---|---|---|---|",
     ]
     for r in resultados:
         cifras = "bien" if not r["cifras_inventadas"] else "inventa " + ", ".join(f"{x:g}" for x in r["cifras_inventadas"])
         reglas = "bien" if not r["reglas_fallidas"] else "; ".join(r["reglas_fallidas"])
-        filas.append(f"| {r['id']} | {r['palabras']} | {r['segundos']} | {cifras} | {reglas} |")
+        filas.append(f"| {r['id']} | {r['palabras']} | {r['segundos']} | {cifras} | {reglas} | {r['en_vivo']} |")
     textos = [f"### {r['id']}\n\n{r['texto'] or r['error']}\n" for r in resultados]
     return "\n".join(filas) + "\n\n" + "\n".join(textos)
 
@@ -97,7 +110,8 @@ def main(pedidos=None, cliente=None):
     for cid in pedidos or CASOS:
         anterior = estados.get(CADENA.get(cid))  # None si el caso no tiene paso anterior
         r = probar(cid, estados[cid], anterior, cliente)
-        print(f"{cid:6} {r['segundos']:>5}s  {'OK' if not (r['cifras_inventadas'] or r['reglas_fallidas']) else 'FALLA'}")
+        ok = not (r["cifras_inventadas"] or r["reglas_fallidas"])
+        print(f"{cid:6} {r['segundos']:>5}s  {'OK   ' if ok else 'FALLA'}  en vivo: {r['en_vivo']}")
         resultados.append(r)
 
     if not pedidos:  # solo la corrida completa reescribe el archivo que lee la prueba
