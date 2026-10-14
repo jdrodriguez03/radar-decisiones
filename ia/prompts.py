@@ -12,8 +12,11 @@ Nunca afirmes que una medida causará un resultado: describe lo que muestran las
 Estructura, una oración por punto:
 1. La comparación: cuántas empresas ya aplican todo lo que el usuario movió y cuánto de su plantilla pierden al año, frente a cuánto pierden las demás. \
 Nombra en español natural (aguinaldo, prima vacacional, salario inicial, vales, rutas) cada palanca de "palancas_movidas" con su nivel, no solo la última: esas empresas cumplen todas a la vez. \
-Si el mensaje trae "Qué cambió frente al paso anterior", empieza con la palanca que acaba de mover y di cuántas empresas quedan frente a cuántas había \
-(por ejemplo, "Con la prima vacacional de 50% y el aguinaldo de 20 días, quedan 16 empresas, antes 22"); del paso anterior usa solo cifras que aparezcan en esa lista.
+Si el mensaje trae "Qué cambió frente al paso anterior", empieza con las palancas de "Cambios desde la última explicación" (nuevas o cambiadas), \
+después las que "Ya tenía", y di cuántas empresas quedan frente a cuántas había \
+(por ejemplo, "Con la prima vacacional de 50% y el salario inicial de $350, sumados al aguinaldo de 20 días, quedan 5 empresas, antes 22"); \
+si quitó una palanca, dilo en pocas palabras ("sin la prima vacacional"). Nombra cada palanca solo con su nivel nuevo: \
+nunca escribas su valor anterior ("de 25% a 50%"), que ya se ve en pantalla. Del paso anterior usa solo cifras que aparezcan en esa lista.
 2. Qué significa en pesos para su empresa: esa diferencia en bajas por año frente al costo anual de la medida. \
 Si el JSON trae "nota_pesos", esta oración dice eso con el porcentaje que pierde hoy su empresa, sin comparar costos ni escribir "$0".
 3. Algo más que tienen en común esas mismas empresas frente a las demás, sin cifras. \
@@ -30,7 +33,7 @@ Forma de la explicación (lo que va entre llaves se llena con datos del JSON):
 "Las {n} empresas que ya {dan o tienen} {palanca y nivel} o más pierden {X}% de su plantilla al año; las demás, {Y}%. Para su empresa, esa diferencia equivale a ${A} millones de pesos al año en bajas, contra ${B} millones de pesos que costaría la medida. Además, {la mayoría} de esas empresas {característica en palabras}."
 
 Forma cuando hay paso anterior (más corta: no repitas el número de empresas en la misma oración):
-"Con {palanca nueva y nivel} y {las palancas anteriores y su nivel}, quedan {n} empresas, antes {n anterior}; pierden {X}% de su plantilla al año y las demás, {Y}%. Para su empresa, la diferencia equivale a ${A} millones de pesos al año en bajas, contra ${B} millones de la medida. Además, esas empresas {rasgo con su como_decirlo}."
+"Con {palancas nuevas y su nivel}, sumadas a {las que ya tenía y su nivel}, quedan {n} empresas, antes {n anterior}; pierden {X}% de su plantilla al año y las demás, {Y}%. Para su empresa, la diferencia equivale a ${A} millones de pesos al año en bajas, contra ${B} millones de la medida. Además, esas empresas {rasgo con su como_decirlo}."
 
 Reglas de lenguaje:
 - Usa "las empresas que ya... muestran", "se observa", "frente a" cuando ayuden a la claridad.
@@ -98,11 +101,13 @@ def rasgos_utiles(estado):
 
 
 def _para_ia(estado):
-    """Copia del estado sin lo que la IA no necesita (listas de ids y la explicación vieja).
+    """Copia del estado sin lo que la IA no necesita (ids, la explicación vieja y el último clic).
 
     De en_comun deja solo el primer rasgo útil, con su "como_decirlo" calculado aquí.
     """
-    limpio = {k: v for k, v in estado.items() if k != "explicacion"}
+    # "cambio" es solo el último clic: con el botón Explicar puede haber varios cambios,
+    # y esos ya van en palabras arriba del JSON (describir_cambios). Mandar los dos confunde.
+    limpio = {k: v for k, v in estado.items() if k not in ("explicacion", "cambio")}
     for parte in ("grupo", "resto"):
         if parte in limpio:
             limpio[parte] = {k: v for k, v in limpio[parte].items() if k != "ids"}
@@ -165,12 +170,75 @@ def anterior_util(estado, anterior):
     return anterior
 
 
+def nivel(palanca, valor):
+    """('prima_vac_op', 0.5) -> 'prima vacacional de 50%': como se nombra una palanca en el mensaje."""
+    formatos = {
+        "sal_dia_ini": lambda v: f"${v:,.0f}",
+        "aguinaldo_op": lambda v: f"{v:g} días",
+        "prima_vac_op": lambda v: f"{v:.0%}",
+        "vales_op": lambda v: f"{v * 100:g}%",
+        "rutas_x100": lambda v: f"{v:g} por cada 100 operativos",
+    }
+    return f"{NOMBRES_PALANCA[palanca]} de {formatos[palanca](valor)}"
+
+
+def cambios_desde(estado, anterior):
+    """Qué palancas cambiaron desde la última combinación explicada (el botón Explicar).
+
+    Entre dos pulsaciones el usuario puede mover varias palancas: se comparan las palancas
+    movidas de antes y de ahora. Sin paso anterior, se compara contra los valores reales.
+    Devuelve (cambios, ya_tenia):
+      cambios:  [{"palanca", "de", "a", "tipo"}] con tipo "nueva", "cambiada" o "quitada"
+      ya_tenia: {palanca: valor} que no cambiaron desde la última explicación
+    "quitada" = volvió a su valor real (deja de filtrar el grupo); su "a" es ese valor real.
+    """
+    reales = (estado.get("empresa") or {}).get("palancas") or {}
+    ahora = estado.get("palancas_movidas") or {}
+    antes = (anterior or {}).get("palancas_movidas") or {}
+    cambios, ya_tenia = [], {}
+    for palanca, valor in ahora.items():
+        if palanca not in antes:
+            cambios.append({"palanca": palanca, "de": reales.get(palanca), "a": valor, "tipo": "nueva"})
+        elif float(antes[palanca]) != float(valor):
+            cambios.append({"palanca": palanca, "de": antes[palanca], "a": valor, "tipo": "cambiada"})
+        else:
+            ya_tenia[palanca] = valor
+    for palanca, valor in antes.items():
+        if palanca not in ahora:
+            cambios.append({"palanca": palanca, "de": valor, "a": reales.get(palanca), "tipo": "quitada"})
+    return cambios, ya_tenia
+
+
+def describir_cambios(estado, anterior):
+    """El bloque de texto con los cambios, ya en palabras, para que la IA no tenga que deducirlos."""
+    cambios, ya_tenia = cambios_desde(estado, anterior)
+    titulo = "Cambios desde la última explicación" if anterior else "Palancas que movió (frente a sus valores reales)"
+    lineas = []
+    for c in cambios:
+        if c["tipo"] == "quitada":
+            lineas.append(f"- quitó {NOMBRES_PALANCA[c['palanca']]}: vuelve a su valor real y ya no filtra a las empresas")
+        else:
+            lineas.append(f"- {nivel(c['palanca'], c['a'])} ({c['tipo']})")
+    if not lineas:
+        lineas.append("- ninguna palanca cambió")
+    texto = f"{titulo}:\n" + "\n".join(lineas)
+    if ya_tenia:
+        texto += "\nYa tenía: " + ", ".join(nivel(p, v) for p, v in ya_tenia.items())
+    return texto
+
+
 def armar_mensaje(estado, anterior):
-    """Arma el mensaje para la IA: el cambio, el estado actual y qué cambió frente al anterior."""
+    """Arma el mensaje para la IA: qué palancas cambiaron, el estado actual y qué cifras cambiaron.
+
+    `anterior` es la última combinación EXPLICADA (botón Explicar), no el último clic:
+    por eso los cambios se calculan con cambios_desde y pueden ser varios.
+    """
     anterior = anterior_util(estado, anterior)
 
-    cambio = estado.get("cambio")
-    partes = [f"Cambio que hizo el usuario:\n{_json(cambio)}" if cambio else "El usuario aún no ha movido ninguna palanca."]
+    if estado.get("palancas_movidas") or anterior:
+        partes = [describir_cambios(estado, anterior)]
+    else:
+        partes = ["El usuario aún no ha movido ninguna palanca."]
     partes.append(f"Resultado actual:\n{_json(_para_ia(estado))}")
     if anterior:
         lineas = resumir_cambio(estado, anterior) or ["- ninguna cifra clave cambió"]
