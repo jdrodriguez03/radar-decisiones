@@ -1,26 +1,36 @@
 """Reglas de lenguaje de la explicación, revisadas en código. Dueño: Julian.
 
 El validador (ia/validador.py) revisa las CIFRAS; este archivo revisa la FORMA:
-- menciona cuántas empresas ya aplican la medida (el n del grupo),
-- no usa palabras que insinúan causa ("logrará", "reducirá"...) ni palabras prohibidas,
-- tiene como máximo 3 oraciones y MAX_PALABRAS palabras,
+- menciona cuántas empresas ya aplican la medida ("22 empresas"),
+- no usa palabras que insinúan causa ni palabras prohibidas,
+- tiene como máximo 3 oraciones y 75 palabras,
 - avisa con palabras sencillas cuando la señal es "no concluyente" o el grupo se completó.
 
-Lo usan scripts/probar_ia.py (para revisar los 15 textos) y tests/test_reglas_ia.py.
+Dos niveles (decisión del día 7):
+- fallas_graves(): palabras de causa y advertencia faltante. Las revisa ia/explicar.py EN VIVO:
+  si el texto tiene una, se descarta y sale la plantilla, igual que con una cifra inventada.
+- revisar(): todas las reglas. Las usan scripts/probar_ia.py y tests/test_reglas_ia.py.
+  El largo, la jerga y el n no tumban un texto en vivo: solo sirven para afinar el prompt.
 """
 import re
 
 MAX_ORACIONES = 3
 MAX_PALABRAS = 75
 
-# Palabras que el texto nunca puede usar. Se buscan como inicio de palabra:
-# "reduc" atrapa "reduce", "reducirá" y "reducir"; "sector" atrapa "sectores".
-PROHIBIDAS = [
-    "logrará", "lograra", "reduc", "obtendrá", "disminu", "pasaría a",  # causa
-    "promedio",  # son medianas
-    "grupo de comparación", "brecha", "rotación", "rotar como",  # jerga
-    "sector", "región", "dólar",  # fuera del JSON
-    "$0.0",
+# Cada palabra se busca como INICIO de palabra y sin importar mayúsculas:
+# "reduc" atrapa "reduce", "reducirá" y "reducir".
+
+# Graves: insinúan que la medida CAUSA un resultado. La app solo compara empresas.
+CAUSA = [
+    "logrará", "lograra", "reduc", "obtendrá", "disminu", "pasaría a",
+    "bajará", "mejorará", "evitará", "garantiz", "hará que", "ahorrará",
+]
+
+# Solo en pruebas: datos mal dichos, jerga interna y contexto que no está en el JSON.
+OTRAS_PROHIBIDAS = [
+    "promedio", "dólar", "$0.0",  # son medianas; son pesos; "$0.0 millones" confunde
+    "grupo de comparación", "brecha", "rotación", "rotar como",  # jerga del equipo
+    "sector", "región",  # el JSON no trae sector ni región
 ]
 
 # Alguna de estas debe aparecer si la señal es "no concluyente" o el grupo se completó.
@@ -31,7 +41,7 @@ def oraciones(texto):
     """Parte el texto en oraciones.
 
     Un punto cuenta como fin de oración solo si va seguido de espacio o del final:
-    así "$6.3 millones" no se parte en dos.
+    así "$6.3 millones" no se parte en dos. El punto y coma no corta.
     """
     partes = re.split(r"(?<=[.!?])\s+", texto.strip())
     return [p for p in partes if p]
@@ -58,21 +68,25 @@ def necesita_advertencia(estado):
     return (estado.get("senal") or {}).get("etiqueta") == "no concluyente" or bool(grupo.get("completado"))
 
 
+def fallas_graves(texto, estado):
+    """Lo que nunca puede llegar a la pantalla: palabras de causa y advertencia faltante."""
+    fallas = [f"usa «{palabra}»" for palabra in CAUSA if _usa(texto, palabra)]
+    if necesita_advertencia(estado) and not any(_usa(texto, a) for a in ADVERTENCIAS):
+        fallas.append("no advierte que la señal no es concluyente o que el grupo se completó")
+    return fallas
+
+
 def revisar(texto, estado):
-    """Lista de reglas que el texto NO cumple. Lista vacía = el texto está bien."""
-    fallas = []
+    """Todas las reglas que el texto NO cumple. Lista vacía = el texto está bien."""
+    fallas = fallas_graves(texto, estado)
     n = (estado.get("grupo") or {}).get("n")
     if estado.get("cambio") and n is not None and not menciona_n(texto, n):
         fallas.append(f"no menciona las {n} empresas del grupo")
-    for palabra in PROHIBIDAS:
-        if _usa(texto, palabra):
-            fallas.append(f"usa «{palabra}»")
+    fallas += [f"usa «{palabra}»" for palabra in OTRAS_PROHIBIDAS if _usa(texto, palabra)]
     total = len(oraciones(texto))
     if total > MAX_ORACIONES:
         fallas.append(f"tiene {total} oraciones (máximo {MAX_ORACIONES})")
     palabras = len(texto.split())
     if palabras > MAX_PALABRAS:
         fallas.append(f"tiene {palabras} palabras (máximo {MAX_PALABRAS})")
-    if necesita_advertencia(estado) and not any(_usa(texto, a) for a in ADVERTENCIAS):
-        fallas.append("no advierte que la señal no es concluyente o que el grupo se completó")
     return fallas
