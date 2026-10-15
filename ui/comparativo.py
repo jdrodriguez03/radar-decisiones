@@ -49,13 +49,13 @@ ETIQUETAS_PESOS = {
 }
 
 
-def cifras_pesos(datos):
+def cifras_pesos(datos, columnas=None):
     """Las dos cifras en pesos, pintadas según su procedencia (ui/procedencia.py).
 
     Los costos de la medida y de la brecha son aritmética sobre lo observado y el perfil: calculado (gris).
     El costo por baja es un valor editable por el directivo: supuesto (ámbar).
     """
-    izq, der = st.columns(2)
+    izq, der = columnas or st.columns(2)
     for col, clave in zip((izq, der), ("costo_medida_anual", "costo_brecha_anual")):
         col.markdown(
             f'<div class="peso">{procedencia.calculado(pesos(datos["pesos"][clave]))}</div>'
@@ -82,6 +82,7 @@ def render(datos):
 
     ind_resto = (datos.get("resto") or {}).get("indicadores") or {}
 
+
     _html(f'<div class="comp-encabezado">Comparando con {grupo["n"]} empresas reales</div>')
 
     if grupo.get("completado"):
@@ -92,7 +93,7 @@ def render(datos):
         emp = datos["empresa"]["indicadores"][clave]
         gru = (grupo.get("indicadores") or {}).get(clave)
         res = ind_resto.get(clave)
-        # En los tres indicadores un valor menor es mejor
+
         clase_grupo = "cifra-grande-acento" if gru is not None and gru < emp else "cifra-grande"
         filas += (
             f'<tr><td class="nombre">{nombre}</td>'
@@ -145,7 +146,7 @@ def preparar_dispersion(datos, empresas, palancas=None):
     propia = df["_id"] == _norm(datos["empresa"]["id"])
 
     elegida = df[propia]
-    if elegida.empty:
+    if elegida.empty:  # si no está en el parquet, se ubica con los datos del estado
         fila = {COL_ID: [datos["empresa"]["id"]], COL_Y: [datos["empresa"]["indicadores"]["rot_anual"]]}
         fila.update({p: [datos["empresa"]["palancas"][p]] for p in lista})
         elegida = pd.DataFrame(fila)
@@ -191,8 +192,10 @@ def dispersion(datos, empresas, palanca_x, valor_x):
         marker={"size": 20, "symbol": "diamond", "color": TEXTO, "line": {"color": ACENTO, "width": 2}},
     ))
 
-    fig.add_vline(x=valor_x, line_dash="dot", line_color=TEXTO)
+    if valor_x is not None:  # la empresa puede no tener dato en esa palanca
+        fig.add_vline(x=valor_x, line_dash="dot", line_color=TEXTO)
 
+    # Medianas de rotación anual; si no hay resto (nada movido) solo se dibuja la del grupo
     medianas = [
         ("grupo", ACENTO, grupos["grupo"][COL_Y].median(), "top right"),
         ("resto", GRIS, grupos["resto"][COL_Y].median(), "bottom right"),
@@ -280,21 +283,24 @@ def palancas_grupo(datos, empresas, niveles, altura=330):
     grupos = preparar_dispersion(datos, empresas, claves)
     todas = empresas[claves]
     reales = datos["empresa"]["palancas"]
+    con_dato = [c for c in claves if not (reales.get(c) is None or reales.get(c) != reales.get(c))]
     nombres = [CONTROLES[c]["nombre"] for c in claves]
 
     def pos(clave, valor):
         """Percentil del valor entre las 40 empresas; los empates cuentan por la mitad."""
-        col = todas[clave]
+        col = todas[clave].dropna()
         return float(((col < valor).sum() + 0.5 * (col == valor).sum()) / len(col))
 
-    def puntos(nombre_serie, valores, color, simbolo="circle", tam=13, borde=None):
-        xs = [pos(c, valores[c]) for c in claves]
-        textos = [f"{nombre_serie} · {CONTROLES[c]['nombre']}: {CONTROLES[c]['fmt'](valores[c])}" for c in claves]
+    def puntos(nombre_serie, valores, color, simbolo="circle", tam=13, borde=None, cs=None):
+        cs = claves if cs is None else cs
+        xs = [pos(c, valores[c]) for c in cs]
+        textos = [f"{nombre_serie} · {CONTROLES[c]['nombre']}: {CONTROLES[c]['fmt'](valores[c])}" for c in cs]
         marcador = {"size": tam, "symbol": simbolo, "color": color}
         if borde:
             marcador["line"] = {"color": borde, "width": 2}
         return xs, go.Scatter(
-            x=xs, y=nombres, mode="markers", name=nombre_serie, hovertext=textos, hoverinfo="text",
+            x=xs, y=[CONTROLES[c]["nombre"] for c in cs], mode="markers", name=nombre_serie,
+            hovertext=textos, hoverinfo="text",
             marker=marcador,
         )
 
@@ -315,11 +321,10 @@ def palancas_grupo(datos, empresas, niveles, altura=330):
     series = [puntos("Grupo (mediana)", med_grupo, ACENTO)]
     if hay_resto:
         series.append(puntos("Resto (mediana)", med_resto, GRIS))
-    series.append(puntos("Empresa hoy", reales, TEXTO, "diamond", 17, ACENTO))
-    movidas = {c: v for c, v in niveles.items() if abs(v - reales[c]) > EPS}
-    # Escenarios fuera de lo observado: el percentil se queda en 0% o 100%, así que se avisa
+    series.append(puntos("Empresa hoy", reales, TEXTO, "diamond", 17, ACENTO, con_dato))
+    movidas = {c: v for c, v in niveles.items() if c in con_dato and abs(v - reales[c]) > EPS}
     fuera = [c for c in movidas if movidas[c] < todas[c].min() - EPS or movidas[c] > todas[c].max() + EPS]
-    if movidas:
+    if movidas:  # el escenario es un valor editable: color de supuesto
         xs = [pos(c, movidas[c]) for c in movidas]
         textos = [
             f"Empresa con el escenario · {CONTROLES[c]['nombre']}: {CONTROLES[c]['fmt'](v)}"
@@ -355,7 +360,7 @@ def palancas_grupo(datos, empresas, niveles, altura=330):
 
 
 def en_comun(datos):
-    """Lo que el grupo tiene en común."""
+    """Lo que el grupo tiene en común, tal como lo calculó el motor (dato observado)."""
     for item in datos.get("en_comun") or []:
         st.markdown(
             procedencia.observado(f'{item["texto"]}: grupo {item["grupo"]} · resto {item["resto"]}'),
