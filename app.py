@@ -1,99 +1,127 @@
-"""Radar de Decisiones. Única pieza que une todo. Dueño: Gaby."""
-import json
+"""Radar de Decisiones: selector + palancas, comparativo y explicación, conectados al motor real."""
+
+import time
 from pathlib import Path
 
 import streamlit as st
 
-from ui.controles import render
-from ui.tema import aplicar_estilos
+from motor.api import calcular_estado
+from ui import comparativo, controles, explicacion, selector, supuestos
+from ui.tema import AMBAR, GRIS, aplicar_estilos
+
+RAIZ = Path(__file__).parent
+RUTA_EMPRESAS = RAIZ / "data" / "processed" / "empresas.parquet"
+MOSTRAR_TIEMPO = True
+LIMITE_MS = 300
 
 st.set_page_config(layout="wide")
 aplicar_estilos()
 
-ruta = Path(__file__).parent / "contrato" / "ejemplo.json"
-datos = json.loads(ruta.read_text(encoding="utf-8"))
 
-NOMBRES_PALANCAS = {
-    "sal_dia_ini": "Salario diario inicial",
-    "aguinaldo_op": "Aguinaldo (días)",
-    "prima_vac_op": "Prima Vacacional",
-    "vales_op": "Vales",
-    "rutas_x100": "Rutas por 100",
-}
-
-NOMBRES_INDICADORES = {
-    "rot_anual": "Rotación Anual",
-    "rot_temprana": "Rotación Temprana",
-    "ausentismo": "Ausentismo",
-}
+def _firma(palancas):
+    """Identifica una combinación de palancas movidas."""
+    return tuple(sorted((k, round(v, 6)) for k, v in palancas.items()))
 
 
-def html(texto):
-    st.markdown(texto, unsafe_allow_html=True)
+def _alternar_palanca():
+    st.session_state["_ver_palanca"] = not st.session_state.get("_ver_palanca", False)
 
 
-def pesos(valor):
-    """$2,326,756 -> $2.326.756 (formato de la plantilla)."""
-    return f"${valor:,.0f}".replace(",", ".")
+def _titulo(texto):
+    st.markdown(f'<div class="titulo-col">{texto}</div>', unsafe_allow_html=True)
 
 
-def cifra_pesos(valor, etiqueta):
-    return (
-        f'<div class="peso">{pesos(valor)}</div>'
-        f'<div class="peso-etiqueta">{etiqueta}</div>'
+@st.fragment
+def pantalla(empresas):
+    """Todo vive en un fragmento: al mover una palanca no se recarga la página completa."""
+    st.markdown('<div class="titulo-app">Radar de Decisiones</div>', unsafe_allow_html=True)
+    subtitulo = st.empty()
+    col_izq, col_centro, col_der = st.columns([1.3, 2.2, 1.5], gap="large")
+
+    # Columna izquierda: selector arriba, controles abajo
+    with col_izq:
+        _titulo("Palancas")
+        perfil = selector.render(empresas)
+        if perfil is None:  # "Mi empresa" aún no se envía; el selector ya avisa qué falta
+            return
+        palancas_movidas, cambio = controles.render(perfil)
+
+    n = perfil.get("plantilla_op")
+    subtitulo.markdown(
+        f'<div class="subtitulo">{perfil["id"]}' + (f" - Plantilla {n:,}" if n is not None else "") + "</div>",
+        unsafe_allow_html=True,
     )
 
+    # Columna central: se arman los espacios en orden y se llenan cuando hay estado.
+    with col_centro:
+        _titulo("Comparativo")
+        zona_graficas = st.container()
+        zona_pesos = st.container()
+        zona_extra = st.container()
+    with zona_pesos:
+        c_medida, c_brecha, c_ajustes = st.columns([1, 1, 0.25], vertical_alignment="center")
+        with c_ajustes:
+            ajustes = supuestos.render()
 
-empresa = datos["empresa"]
-html('<div class="titulo-app">Radar de Decisiones</div>')
-html(f'<div class="subtitulo">{empresa["id"]} - Plantilla {empresa["plantilla_op"]:,}</div>')
+    try:
+        estado = calcular_estado(empresas, perfil, palancas_movidas, cambio, ajustes)
+    except ValueError as error:
+        st.error(str(error))
+        return
 
-col_izq, col_centro, col_der = st.columns([1.4, 2, 1.3], gap="large")
-
-# Columna izquierda: palancas
-with col_izq:
-    html('<div class="titulo-col">Palancas</div>')
-    palancas_movidas, cambio = render(empresa)
-    st.button("Guardar escenario")
-
-# Columna central: indicadores, gráfica, cifras en pesos
-with col_centro:
-    html('<div class="titulo-col">Indicadores</div>')
-
-    filas = ""
-    for clave, nombre in NOMBRES_INDICADORES.items():
-        emp = empresa["indicadores"][clave]
-        gru = datos["grupo"]["indicadores"][clave]
-        res = datos["resto"]["indicadores"][clave]
-        clase_grupo = "cifra-acento" if gru < res else "cifra"
-        filas += (
-            f'<tr><td class="nombre">{nombre}</td>'
-            f'<td><span class="cifra">{emp:.1%}</span></td>'
-            f'<td><span class="{clase_grupo}">{gru:.1%}</span></td>'
-            f'<td><span class="cifra">{res:.1%}</span></td></tr>'
+    niveles = {p: palancas_movidas.get(p, v) for p, v in perfil["palancas"].items()}
+    with zona_graficas:
+        comparativo.render(estado)
+        g_b, g_c = st.columns(2)
+        with g_b:
+            st.markdown('<div class="grafica-titulo">Rotación anual: grupo y resto</div>', unsafe_allow_html=True)
+            comparativo.distribucion_rotacion(estado, empresas)
+        with g_c:
+            st.markdown('<div class="grafica-titulo">Qué hace distinto el grupo</div>', unsafe_allow_html=True)
+            comparativo.palancas_grupo(estado, empresas, niveles)
+        comparativo.en_comun(estado)
+    with zona_pesos:
+        comparativo.cifras_pesos(estado, (c_medida, c_brecha))
+    with zona_extra:
+        ver = st.session_state.get("_ver_palanca", False)
+        st.button(
+            "Ocultar gráfica por palanca" if ver else "Ver gráfica por palanca",
+            on_click=_alternar_palanca, key="btn_palanca",
         )
-    html(
-        '<table class="tabla"><tr><th></th><th>Empresa</th><th>Grupo</th><th>Resto</th></tr>'
-        f"{filas}</table>"
-    )
+        if ver:
+            palanca_x = cambio["palanca"] if cambio else "sal_dia_ini"
+            valor_x = palancas_movidas.get(palanca_x, perfil["palancas"].get(palanca_x))
+            comparativo.dispersion(estado, empresas, palanca_x, valor_x)
 
-    html('<div style="height:24px"></div>')
-    p = datos["pesos"]
-    p1, p2 = st.columns(2)
-    with p1:
-        html(cifra_pesos(p["costo_medida_anual"], "Costo Anual de la<br>Medida"))
-    with p2:
-        html(cifra_pesos(p["costo_brecha_anual"], "Costo Anual de la<br>Brecha"))
+    # Columna derecha: Explicar solo se llama al pulsarlo
+    with col_der:
+        _titulo("Explicación")
+        explicado = st.session_state.get("estado_explicado")
+        misma_empresa = explicado is not None and explicado["empresa"]["id"] == estado["empresa"]["id"]
+        anterior = explicado if misma_empresa else None  # la última combinación explicada, no el último movimiento
+        pulsado = st.button(
+            "Explicar", type="primary", key="btn_explicar", use_container_width=True,
+            disabled=not palancas_movidas, help="Mueve al menos una palanca y explica el escenario cuando esté listo.",
+        )
+        contenedor = st.container()
+        if pulsado:
+            explicacion.render(contenedor, estado, anterior)
+            st.session_state["estado_explicado"] = estado
+        elif misma_empresa and _firma(explicado["palancas_movidas"]) != _firma(palancas_movidas):
+            explicacion.aviso_pendiente(contenedor)
 
-# Columna derecha: explicación, gráfica, señal y n
-with col_der:
-    html('<div class="titulo-col">Explicación</div>')
-    html(f'<div class="explicacion">{datos["explicacion"]["texto"]}</div>')
-    html('<div style="height:28px"></div>')
-    html('<div class="grafica"><span class="texto-gris">Espacio para la gráfica</span></div>')
-    senal = datos["senal"]
-    html(f'<div class="texto-gris" style="margin-top:14px">Señal: {senal["etiqueta"]} (p = {senal["p"]})</div>')
-    html(
-        f'<div class="texto-gris">n grupo = {datos["grupo"]["n"]} · '
-        f'n resto = {datos["resto"]["n"]}</div>'
-    )
+    if MOSTRAR_TIEMPO:
+        t_click = st.session_state.pop("_t_click", None)
+        if t_click is not None:
+            st.session_state["_ultimo_ms"] = (time.perf_counter() - t_click) * 1000
+        ms = st.session_state.get("_ultimo_ms")
+        if ms is not None:
+            color = AMBAR if ms > LIMITE_MS else GRIS
+            st.markdown(
+                f'<div style="position:fixed;bottom:8px;right:12px;z-index:999;font-size:13px;color:{color}">'
+                f"clic → dibujo: {ms:.0f} ms</div>",
+                unsafe_allow_html=True,
+            )
+
+
+pantalla(comparativo.cargar_empresas(RUTA_EMPRESAS))
