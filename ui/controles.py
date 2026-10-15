@@ -49,7 +49,7 @@ def _rango(cfg, real):
 
 def _falta(valor):
     """True si la palanca no tiene dato (None o NaN), como pasa con algunas empresas de la encuesta."""
-    return valor is None or valor != valor
+    return valor is None
 
 
 def _iniciar(perfil):
