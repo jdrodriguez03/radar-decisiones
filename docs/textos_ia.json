@@ -1,0 +1,1858 @@
+[
+  {
+    "id": "G1",
+    "anterior": null,
+    "segundos": 2.13,
+    "texto": "Las 22 empresas que ya dan aguinaldo de 20 días o más pierden 22% de su plantilla al año; las otras 16, 53%. Para su empresa, esa diferencia equivale a $6.3 millones de pesos al año en bajas, contra $2.3 millones de pesos que costaría la medida. Además, la mayoría de esas empresas también da prima vacacional de 50% o más.",
+    "error": null,
+    "palabras": 61,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 36",
+        "plantilla_op": 1438,
+        "palancas": {
+          "sal_dia_ini": 323.61,
+          "aguinaldo_op": 15.0,
+          "prima_vac_op": 0.25,
+          "vales_op": 0.09,
+          "rutas_x100": 2.85118219749652
+        },
+        "indicadores": {
+          "rot_anual": 0.516,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "cambio": {
+        "palanca": "aguinaldo_op",
+        "de": 15.0,
+        "a": 20.0
+      },
+      "palancas_movidas": {
+        "aguinaldo_op": 20.0
+      },
+      "grupo": {
+        "n": 22,
+        "completado": false,
+        "ids": [
+          "COMPAÑIA 10",
+          "COMPAÑIA 14",
+          "COMPAÑIA 15",
+          "COMPAÑIA 19",
+          "COMPAÑIA 2",
+          "COMPAÑIA 21",
+          "COMPAÑIA 22",
+          "COMPAÑIA 24",
+          "COMPAÑIA 26",
+          "COMPAÑIA 28",
+          "COMPAÑIA 29",
+          "COMPAÑIA 3",
+          "COMPAÑIA 30",
+          "COMPAÑIA 31",
+          "COMPAÑIA 32",
+          "COMPAÑIA 34",
+          "COMPAÑIA 37",
+          "COMPAÑIA 38",
+          "COMPAÑIA 39",
+          "COMPAÑIA 40",
+          "COMPAÑIA 7",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.222,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.016
+        }
+      },
+      "resto": {
+        "n": 16,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 11",
+          "COMPAÑIA 12",
+          "COMPAÑIA 13",
+          "COMPAÑIA 16",
+          "COMPAÑIA 17",
+          "COMPAÑIA 18",
+          "COMPAÑIA 20",
+          "COMPAÑIA 23",
+          "COMPAÑIA 25",
+          "COMPAÑIA 33",
+          "COMPAÑIA 35",
+          "COMPAÑIA 4",
+          "COMPAÑIA 5",
+          "COMPAÑIA 6",
+          "COMPAÑIA 8"
+        ],
+        "indicadores": {
+          "rot_anual": 0.534,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.01
+        }
+      },
+      "senal": {
+        "etiqueta": "clara",
+        "p": 0.04748134742058548
+      },
+      "en_comun": [
+        {
+          "texto": "prima vacacional de 50% o más",
+          "grupo": "16 de 22",
+          "resto": "4 de 16"
+        },
+        {
+          "texto": "fondo de ahorro mediano",
+          "grupo": 0.1,
+          "resto": 0.06
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 2326755.9000000004,
+        "costo_brecha_anual": 6341580.000000001,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "G2",
+    "anterior": "G1",
+    "segundos": 1.71,
+    "texto": "Con la prima vacacional de 50%, sumada al aguinaldo de 20 días, quedan 16 empresas, antes 22; pierden 17% de su plantilla al año y las demás, 43%. Para su empresa, la diferencia equivale a $7.4 millones de pesos al año en bajas, contra $3.7 millones de la medida. Además, esas empresas suelen tener un valor más alto de fondo de ahorro que las demás.",
+    "error": null,
+    "palabras": 65,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 36",
+        "plantilla_op": 1438,
+        "palancas": {
+          "sal_dia_ini": 323.61,
+          "aguinaldo_op": 15.0,
+          "prima_vac_op": 0.25,
+          "vales_op": 0.09,
+          "rutas_x100": 2.85118219749652
+        },
+        "indicadores": {
+          "rot_anual": 0.516,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "cambio": {
+        "palanca": "prima_vac_op",
+        "de": 0.25,
+        "a": 0.5
+      },
+      "palancas_movidas": {
+        "aguinaldo_op": 20.0,
+        "prima_vac_op": 0.5
+      },
+      "grupo": {
+        "n": 16,
+        "completado": false,
+        "ids": [
+          "COMPAÑIA 15",
+          "COMPAÑIA 19",
+          "COMPAÑIA 2",
+          "COMPAÑIA 21",
+          "COMPAÑIA 22",
+          "COMPAÑIA 24",
+          "COMPAÑIA 26",
+          "COMPAÑIA 28",
+          "COMPAÑIA 32",
+          "COMPAÑIA 34",
+          "COMPAÑIA 37",
+          "COMPAÑIA 38",
+          "COMPAÑIA 39",
+          "COMPAÑIA 40",
+          "COMPAÑIA 7",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.174,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.013999999999999999
+        }
+      },
+      "resto": {
+        "n": 22,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 10",
+          "COMPAÑIA 11",
+          "COMPAÑIA 12",
+          "COMPAÑIA 13",
+          "COMPAÑIA 14",
+          "COMPAÑIA 16",
+          "COMPAÑIA 17",
+          "COMPAÑIA 18",
+          "COMPAÑIA 20",
+          "COMPAÑIA 23",
+          "COMPAÑIA 25",
+          "COMPAÑIA 29",
+          "COMPAÑIA 3",
+          "COMPAÑIA 30",
+          "COMPAÑIA 31",
+          "COMPAÑIA 33",
+          "COMPAÑIA 35",
+          "COMPAÑIA 4",
+          "COMPAÑIA 5",
+          "COMPAÑIA 6",
+          "COMPAÑIA 8"
+        ],
+        "indicadores": {
+          "rot_anual": 0.432,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.015
+        }
+      },
+      "senal": {
+        "etiqueta": "débil",
+        "p": 0.050890808009037974
+      },
+      "en_comun": [
+        {
+          "texto": "fondo de ahorro mediano",
+          "grupo": 0.11,
+          "resto": 0.07
+        },
+        {
+          "texto": "motivo de baja: mejor horario",
+          "grupo": 0.3,
+          "resto": 0.1
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 3722809.4400000004,
+        "costo_brecha_anual": 7376940.000000001,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "G3",
+    "anterior": "G2",
+    "segundos": 1.92,
+    "texto": "Con el salario inicial de $350, sumado al aguinaldo de 20 días y la prima vacacional de 50%, quedan 5 empresas, antes 16; pierden 12% de su plantilla al año y las otras 33 empresas, 38%. Para su empresa, la diferencia equivale a $8.5 millones de pesos al año en bajas, contra $17.6 millones de pesos que costaría la medida. Con estos datos la señal no es concluyente: tómelo como referencia, no como conclusión.",
+    "error": null,
+    "palabras": 74,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 36",
+        "plantilla_op": 1438,
+        "palancas": {
+          "sal_dia_ini": 323.61,
+          "aguinaldo_op": 15.0,
+          "prima_vac_op": 0.25,
+          "vales_op": 0.09,
+          "rutas_x100": 2.85118219749652
+        },
+        "indicadores": {
+          "rot_anual": 0.516,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "cambio": {
+        "palanca": "sal_dia_ini",
+        "de": 323.61,
+        "a": 350.0
+      },
+      "palancas_movidas": {
+        "aguinaldo_op": 20.0,
+        "prima_vac_op": 0.5,
+        "sal_dia_ini": 350.0
+      },
+      "grupo": {
+        "n": 5,
+        "completado": false,
+        "ids": [
+          "COMPAÑIA 19",
+          "COMPAÑIA 2",
+          "COMPAÑIA 28",
+          "COMPAÑIA 40",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.12,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.007
+        }
+      },
+      "resto": {
+        "n": 33,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 10",
+          "COMPAÑIA 11",
+          "COMPAÑIA 12",
+          "COMPAÑIA 13",
+          "COMPAÑIA 14",
+          "COMPAÑIA 15",
+          "COMPAÑIA 16",
+          "COMPAÑIA 17",
+          "COMPAÑIA 18",
+          "COMPAÑIA 20",
+          "COMPAÑIA 21",
+          "COMPAÑIA 22",
+          "COMPAÑIA 23",
+          "COMPAÑIA 24",
+          "COMPAÑIA 25",
+          "COMPAÑIA 26",
+          "COMPAÑIA 29",
+          "COMPAÑIA 3",
+          "COMPAÑIA 30",
+          "COMPAÑIA 31",
+          "COMPAÑIA 32",
+          "COMPAÑIA 33",
+          "COMPAÑIA 34",
+          "COMPAÑIA 35",
+          "COMPAÑIA 37",
+          "COMPAÑIA 38",
+          "COMPAÑIA 39",
+          "COMPAÑIA 4",
+          "COMPAÑIA 5",
+          "COMPAÑIA 6",
+          "COMPAÑIA 7",
+          "COMPAÑIA 8"
+        ],
+        "indicadores": {
+          "rot_anual": 0.384,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.015
+        }
+      },
+      "senal": {
+        "etiqueta": "no concluyente",
+        "p": 0.23475761057764843
+      },
+      "en_comun": [
+        {
+          "texto": "manejan jornadas de 12 horas",
+          "grupo": "0 de 5",
+          "resto": "13 de 33"
+        },
+        {
+          "texto": "motivo de baja: cuidado de hijos o familiares",
+          "grupo": 0.1,
+          "resto": 0.5
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 17574128.739999995,
+        "costo_brecha_anual": 8541720.0,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "S1",
+    "anterior": null,
+    "segundos": 1.66,
+    "texto": "Las 12 empresas que ya dan un salario inicial de $340 o más pierden 16% de su plantilla al año; las otras 27, 42%. Para su empresa, esa diferencia equivale a $7.8 millones de pesos al año en bajas, contra $8.6 millones de pesos que costaría la medida. Además, la mayoría de esas empresas también da prima vacacional de 50% o más.",
+    "error": null,
+    "palabras": 62,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 36",
+        "plantilla_op": 1438,
+        "palancas": {
+          "sal_dia_ini": 323.61,
+          "aguinaldo_op": 15.0,
+          "prima_vac_op": 0.25,
+          "vales_op": 0.09,
+          "rutas_x100": 2.85118219749652
+        },
+        "indicadores": {
+          "rot_anual": 0.516,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "cambio": {
+        "palanca": "sal_dia_ini",
+        "de": 323.61,
+        "a": 340.0
+      },
+      "palancas_movidas": {
+        "sal_dia_ini": 340.0
+      },
+      "grupo": {
+        "n": 12,
+        "completado": false,
+        "ids": [
+          "COMPAÑIA 13",
+          "COMPAÑIA 18",
+          "COMPAÑIA 19",
+          "COMPAÑIA 2",
+          "COMPAÑIA 22",
+          "COMPAÑIA 27",
+          "COMPAÑIA 28",
+          "COMPAÑIA 3",
+          "COMPAÑIA 33",
+          "COMPAÑIA 38",
+          "COMPAÑIA 40",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.156,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.01
+        }
+      },
+      "resto": {
+        "n": 27,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 10",
+          "COMPAÑIA 11",
+          "COMPAÑIA 12",
+          "COMPAÑIA 14",
+          "COMPAÑIA 15",
+          "COMPAÑIA 16",
+          "COMPAÑIA 17",
+          "COMPAÑIA 20",
+          "COMPAÑIA 21",
+          "COMPAÑIA 23",
+          "COMPAÑIA 24",
+          "COMPAÑIA 25",
+          "COMPAÑIA 26",
+          "COMPAÑIA 29",
+          "COMPAÑIA 30",
+          "COMPAÑIA 31",
+          "COMPAÑIA 32",
+          "COMPAÑIA 34",
+          "COMPAÑIA 35",
+          "COMPAÑIA 37",
+          "COMPAÑIA 39",
+          "COMPAÑIA 4",
+          "COMPAÑIA 5",
+          "COMPAÑIA 6",
+          "COMPAÑIA 7",
+          "COMPAÑIA 8"
+        ],
+        "indicadores": {
+          "rot_anual": 0.42000000000000004,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.019000000000000003
+        }
+      },
+      "senal": {
+        "etiqueta": "débil",
+        "p": 0.06114740896193058
+      },
+      "en_comun": [
+        {
+          "texto": "prima vacacional de 50% o más",
+          "grupo": "8 de 11",
+          "resto": "12 de 27"
+        },
+        {
+          "texto": "motivo de baja: mejor horario",
+          "grupo": 0.05,
+          "resto": 0.3
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 8602619.299999993,
+        "costo_brecha_anual": 7765199.999999999,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "S2",
+    "anterior": null,
+    "segundos": 1.66,
+    "texto": "Las 20 empresas que ya dan prima vacacional de 50% o más pierden 20% de su plantilla al año; las otras 18, 43%. Para su empresa, esa diferencia equivale a $6.9 millones de pesos al año en bajas, contra $1.4 millones de pesos que costaría la medida. Con estos datos la señal no es concluyente: tómelo como referencia, no como conclusión.",
+    "error": null,
+    "palabras": 61,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 36",
+        "plantilla_op": 1438,
+        "palancas": {
+          "sal_dia_ini": 323.61,
+          "aguinaldo_op": 15.0,
+          "prima_vac_op": 0.25,
+          "vales_op": 0.09,
+          "rutas_x100": 2.85118219749652
+        },
+        "indicadores": {
+          "rot_anual": 0.516,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "cambio": {
+        "palanca": "prima_vac_op",
+        "de": 0.25,
+        "a": 0.5
+      },
+      "palancas_movidas": {
+        "prima_vac_op": 0.5
+      },
+      "grupo": {
+        "n": 20,
+        "completado": false,
+        "ids": [
+          "COMPAÑIA 15",
+          "COMPAÑIA 18",
+          "COMPAÑIA 19",
+          "COMPAÑIA 2",
+          "COMPAÑIA 20",
+          "COMPAÑIA 21",
+          "COMPAÑIA 22",
+          "COMPAÑIA 24",
+          "COMPAÑIA 26",
+          "COMPAÑIA 28",
+          "COMPAÑIA 32",
+          "COMPAÑIA 34",
+          "COMPAÑIA 37",
+          "COMPAÑIA 38",
+          "COMPAÑIA 39",
+          "COMPAÑIA 4",
+          "COMPAÑIA 40",
+          "COMPAÑIA 5",
+          "COMPAÑIA 7",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.198,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.013999999999999999
+        }
+      },
+      "resto": {
+        "n": 18,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 10",
+          "COMPAÑIA 11",
+          "COMPAÑIA 12",
+          "COMPAÑIA 13",
+          "COMPAÑIA 14",
+          "COMPAÑIA 16",
+          "COMPAÑIA 17",
+          "COMPAÑIA 23",
+          "COMPAÑIA 25",
+          "COMPAÑIA 29",
+          "COMPAÑIA 3",
+          "COMPAÑIA 30",
+          "COMPAÑIA 31",
+          "COMPAÑIA 33",
+          "COMPAÑIA 35",
+          "COMPAÑIA 6",
+          "COMPAÑIA 8"
+        ],
+        "indicadores": {
+          "rot_anual": 0.432,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.016
+        }
+      },
+      "senal": {
+        "etiqueta": "no concluyente",
+        "p": 0.15176855520162202
+      },
+      "en_comun": [
+        {
+          "texto": "aguinaldo mediano",
+          "grupo": 24.0,
+          "resto": 16.5
+        },
+        {
+          "texto": "ofrecen comedor",
+          "grupo": "11 de 20",
+          "resto": "13 de 18"
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 1396053.54,
+        "costo_brecha_anual": 6859260.0,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "S3",
+    "anterior": null,
+    "segundos": 1.84,
+    "texto": "Las 19 empresas que ya dan vales de 10% o más pierden 24% de su plantilla al año; las otras 16, 34%. Para su empresa, esa diferencia equivale a $6.0 millones de pesos al año en bajas, contra $1.7 millones de pesos que costaría la medida. Además, esas empresas suelen tener un fondo de ahorro con un valor más alto que las demás.",
+    "error": null,
+    "palabras": 63,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 36",
+        "plantilla_op": 1438,
+        "palancas": {
+          "sal_dia_ini": 323.61,
+          "aguinaldo_op": 15.0,
+          "prima_vac_op": 0.25,
+          "vales_op": 0.09,
+          "rutas_x100": 2.85118219749652
+        },
+        "indicadores": {
+          "rot_anual": 0.516,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "cambio": {
+        "palanca": "vales_op",
+        "de": 0.09,
+        "a": 0.1
+      },
+      "palancas_movidas": {
+        "vales_op": 0.1
+      },
+      "grupo": {
+        "n": 19,
+        "completado": false,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 12",
+          "COMPAÑIA 14",
+          "COMPAÑIA 17",
+          "COMPAÑIA 18",
+          "COMPAÑIA 19",
+          "COMPAÑIA 2",
+          "COMPAÑIA 21",
+          "COMPAÑIA 24",
+          "COMPAÑIA 26",
+          "COMPAÑIA 29",
+          "COMPAÑIA 3",
+          "COMPAÑIA 30",
+          "COMPAÑIA 34",
+          "COMPAÑIA 37",
+          "COMPAÑIA 38",
+          "COMPAÑIA 40",
+          "COMPAÑIA 6",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.24,
+          "rot_temprana": 0.3,
+          "ausentismo": 0.015
+        }
+      },
+      "resto": {
+        "n": 16,
+        "ids": [
+          "COMPAÑIA 13",
+          "COMPAÑIA 15",
+          "COMPAÑIA 16",
+          "COMPAÑIA 20",
+          "COMPAÑIA 22",
+          "COMPAÑIA 23",
+          "COMPAÑIA 25",
+          "COMPAÑIA 28",
+          "COMPAÑIA 31",
+          "COMPAÑIA 32",
+          "COMPAÑIA 33",
+          "COMPAÑIA 39",
+          "COMPAÑIA 4",
+          "COMPAÑIA 5",
+          "COMPAÑIA 7",
+          "COMPAÑIA 8"
+        ],
+        "indicadores": {
+          "rot_anual": 0.336,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.01
+        }
+      },
+      "senal": {
+        "etiqueta": "débil",
+        "p": 0.12749215788721807
+      },
+      "en_comun": [
+        {
+          "texto": "fondo de ahorro mediano",
+          "grupo": 0.1,
+          "resto": 0.07
+        },
+        {
+          "texto": "motivo de baja: mejor horario",
+          "grupo": 0.1,
+          "resto": 0.3
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 1698531.8070000017,
+        "costo_brecha_anual": 5953320.000000001,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "S4",
+    "anterior": null,
+    "segundos": 1.85,
+    "texto": "Las 13 empresas que ya ofrecen rutas de 5 por cada 100 operativos o más pierden 13% de su plantilla al año; las otras 25, 38%. Para su empresa, esa diferencia equivale a $8.3 millones de pesos al año en bajas, contra $13.0 millones de pesos que costaría la medida. Con estos datos la señal no es concluyente: tómelo como referencia, no como conclusión.",
+    "error": null,
+    "palabras": 64,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 36",
+        "plantilla_op": 1438,
+        "palancas": {
+          "sal_dia_ini": 323.61,
+          "aguinaldo_op": 15.0,
+          "prima_vac_op": 0.25,
+          "vales_op": 0.09,
+          "rutas_x100": 2.85118219749652
+        },
+        "indicadores": {
+          "rot_anual": 0.516,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "cambio": {
+        "palanca": "rutas_x100",
+        "de": 2.85118219749652,
+        "a": 5.0
+      },
+      "palancas_movidas": {
+        "rutas_x100": 5.0
+      },
+      "grupo": {
+        "n": 13,
+        "completado": false,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 11",
+          "COMPAÑIA 14",
+          "COMPAÑIA 16",
+          "COMPAÑIA 2",
+          "COMPAÑIA 23",
+          "COMPAÑIA 3",
+          "COMPAÑIA 32",
+          "COMPAÑIA 33",
+          "COMPAÑIA 34",
+          "COMPAÑIA 40",
+          "COMPAÑIA 5",
+          "COMPAÑIA 8"
+        ],
+        "indicadores": {
+          "rot_anual": 0.132,
+          "rot_temprana": 0.25,
+          "ausentismo": 0.01
+        }
+      },
+      "resto": {
+        "n": 25,
+        "ids": [
+          "COMPAÑIA 10",
+          "COMPAÑIA 12",
+          "COMPAÑIA 13",
+          "COMPAÑIA 15",
+          "COMPAÑIA 17",
+          "COMPAÑIA 18",
+          "COMPAÑIA 19",
+          "COMPAÑIA 20",
+          "COMPAÑIA 21",
+          "COMPAÑIA 22",
+          "COMPAÑIA 24",
+          "COMPAÑIA 25",
+          "COMPAÑIA 26",
+          "COMPAÑIA 28",
+          "COMPAÑIA 29",
+          "COMPAÑIA 30",
+          "COMPAÑIA 31",
+          "COMPAÑIA 35",
+          "COMPAÑIA 37",
+          "COMPAÑIA 38",
+          "COMPAÑIA 39",
+          "COMPAÑIA 4",
+          "COMPAÑIA 6",
+          "COMPAÑIA 7",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.384,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.021
+        }
+      },
+      "senal": {
+        "etiqueta": "no concluyente",
+        "p": 0.24830427419191103
+      },
+      "en_comun": [
+        {
+          "texto": "ofrecen comedor",
+          "grupo": "10 de 13",
+          "resto": "14 de 25"
+        },
+        {
+          "texto": "prima vacacional de 50% o más",
+          "grupo": "5 de 13",
+          "resto": "15 de 25"
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 12978000.000000017,
+        "costo_brecha_anual": 8282880.0,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "D1",
+    "anterior": null,
+    "segundos": 1.71,
+    "texto": "Las 14 empresas que ya dan aguinaldo de 20 días y vales de 10% o más pierden 15% de su plantilla al año; las otras 21, 44%. Para su empresa, esa diferencia equivale a $7.9 millones de pesos al año en bajas, contra $4.0 millones de pesos que costaría la medida. Además, la mayoría de esas empresas también da prima vacacional de 50% o más.",
+    "error": null,
+    "palabras": 65,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 36",
+        "plantilla_op": 1438,
+        "palancas": {
+          "sal_dia_ini": 323.61,
+          "aguinaldo_op": 15.0,
+          "prima_vac_op": 0.25,
+          "vales_op": 0.09,
+          "rutas_x100": 2.85118219749652
+        },
+        "indicadores": {
+          "rot_anual": 0.516,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "cambio": {
+        "palanca": "vales_op",
+        "de": 0.09,
+        "a": 0.1
+      },
+      "palancas_movidas": {
+        "aguinaldo_op": 20.0,
+        "vales_op": 0.1
+      },
+      "grupo": {
+        "n": 14,
+        "completado": false,
+        "ids": [
+          "COMPAÑIA 14",
+          "COMPAÑIA 19",
+          "COMPAÑIA 2",
+          "COMPAÑIA 21",
+          "COMPAÑIA 24",
+          "COMPAÑIA 26",
+          "COMPAÑIA 29",
+          "COMPAÑIA 3",
+          "COMPAÑIA 30",
+          "COMPAÑIA 34",
+          "COMPAÑIA 37",
+          "COMPAÑIA 38",
+          "COMPAÑIA 40",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.15000000000000002,
+          "rot_temprana": 0.3,
+          "ausentismo": 0.015
+        }
+      },
+      "resto": {
+        "n": 21,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 12",
+          "COMPAÑIA 13",
+          "COMPAÑIA 15",
+          "COMPAÑIA 16",
+          "COMPAÑIA 17",
+          "COMPAÑIA 18",
+          "COMPAÑIA 20",
+          "COMPAÑIA 22",
+          "COMPAÑIA 23",
+          "COMPAÑIA 25",
+          "COMPAÑIA 28",
+          "COMPAÑIA 31",
+          "COMPAÑIA 32",
+          "COMPAÑIA 33",
+          "COMPAÑIA 39",
+          "COMPAÑIA 4",
+          "COMPAÑIA 5",
+          "COMPAÑIA 6",
+          "COMPAÑIA 7",
+          "COMPAÑIA 8"
+        ],
+        "indicadores": {
+          "rot_anual": 0.44399999999999995,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.0125
+        }
+      },
+      "senal": {
+        "etiqueta": "clara",
+        "p": 0.018356664729272384
+      },
+      "en_comun": [
+        {
+          "texto": "prima vacacional de 50% o más",
+          "grupo": "10 de 14",
+          "resto": "10 de 21"
+        },
+        {
+          "texto": "fondo de ahorro mediano",
+          "grupo": 0.1,
+          "resto": 0.07
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 4025287.7070000023,
+        "costo_brecha_anual": 7894620.0,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "D2",
+    "anterior": null,
+    "segundos": 1.8,
+    "texto": "Las 5 empresas que ya dan prima vacacional de 50% y rutas de 5 por cada 100 operativos pierden 12% de su plantilla al año; las otras 33, 40%. Para su empresa, esa diferencia equivale a $8.5 millones de pesos al año en bajas, contra $14.4 millones de pesos que costaría la medida. Además, esas empresas suelen tener un valor más bajo que las demás en bajas por motivos personales.",
+    "error": null,
+    "palabras": 70,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 36",
+        "plantilla_op": 1438,
+        "palancas": {
+          "sal_dia_ini": 323.61,
+          "aguinaldo_op": 15.0,
+          "prima_vac_op": 0.25,
+          "vales_op": 0.09,
+          "rutas_x100": 2.85118219749652
+        },
+        "indicadores": {
+          "rot_anual": 0.516,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "cambio": {
+        "palanca": "rutas_x100",
+        "de": 2.85118219749652,
+        "a": 5.0
+      },
+      "palancas_movidas": {
+        "prima_vac_op": 0.5,
+        "rutas_x100": 5.0
+      },
+      "grupo": {
+        "n": 5,
+        "completado": false,
+        "ids": [
+          "COMPAÑIA 2",
+          "COMPAÑIA 32",
+          "COMPAÑIA 34",
+          "COMPAÑIA 40",
+          "COMPAÑIA 5"
+        ],
+        "indicadores": {
+          "rot_anual": 0.12,
+          "rot_temprana": 0.15000000000000002,
+          "ausentismo": 0.007
+        }
+      },
+      "resto": {
+        "n": 33,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 10",
+          "COMPAÑIA 11",
+          "COMPAÑIA 12",
+          "COMPAÑIA 13",
+          "COMPAÑIA 14",
+          "COMPAÑIA 15",
+          "COMPAÑIA 16",
+          "COMPAÑIA 17",
+          "COMPAÑIA 18",
+          "COMPAÑIA 19",
+          "COMPAÑIA 20",
+          "COMPAÑIA 21",
+          "COMPAÑIA 22",
+          "COMPAÑIA 23",
+          "COMPAÑIA 24",
+          "COMPAÑIA 25",
+          "COMPAÑIA 26",
+          "COMPAÑIA 28",
+          "COMPAÑIA 29",
+          "COMPAÑIA 3",
+          "COMPAÑIA 30",
+          "COMPAÑIA 31",
+          "COMPAÑIA 33",
+          "COMPAÑIA 35",
+          "COMPAÑIA 37",
+          "COMPAÑIA 38",
+          "COMPAÑIA 39",
+          "COMPAÑIA 4",
+          "COMPAÑIA 6",
+          "COMPAÑIA 7",
+          "COMPAÑIA 8",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.396,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.015
+        }
+      },
+      "senal": {
+        "etiqueta": "clara",
+        "p": 0.007878559813980057
+      },
+      "en_comun": [
+        {
+          "texto": "motivo de baja: motivos personales",
+          "grupo": 0.1,
+          "resto": 0.5
+        },
+        {
+          "texto": "motivo de baja: conflictos familiares",
+          "grupo": 0.2,
+          "resto": 0.5
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 14374053.540000018,
+        "costo_brecha_anual": 8541720.0,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "E1",
+    "anterior": null,
+    "segundos": 1.68,
+    "texto": "Las 5 empresas que ya pagan un salario inicial de $380 o más pierden 38% de su plantilla al año; las otras 34, 32%. Para su empresa, esa diferencia equivale a $2.8 millones de pesos al año en bajas, contra $29.6 millones de pesos que costaría la medida. Como hay pocas empresas con esta combinación, se sumaron otras similares: tómelo como referencia, no como conclusión.",
+    "error": null,
+    "palabras": 65,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 36",
+        "plantilla_op": 1438,
+        "palancas": {
+          "sal_dia_ini": 323.61,
+          "aguinaldo_op": 15.0,
+          "prima_vac_op": 0.25,
+          "vales_op": 0.09,
+          "rutas_x100": 2.85118219749652
+        },
+        "indicadores": {
+          "rot_anual": 0.516,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "cambio": {
+        "palanca": "sal_dia_ini",
+        "de": 323.61,
+        "a": 380.0
+      },
+      "palancas_movidas": {
+        "sal_dia_ini": 380.0
+      },
+      "grupo": {
+        "n": 5,
+        "completado": true,
+        "ids": [
+          "COMPAÑIA 13",
+          "COMPAÑIA 2",
+          "COMPAÑIA 28",
+          "COMPAÑIA 40",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.384,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.007
+        }
+      },
+      "resto": {
+        "n": 34,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 10",
+          "COMPAÑIA 11",
+          "COMPAÑIA 12",
+          "COMPAÑIA 14",
+          "COMPAÑIA 15",
+          "COMPAÑIA 16",
+          "COMPAÑIA 17",
+          "COMPAÑIA 18",
+          "COMPAÑIA 19",
+          "COMPAÑIA 20",
+          "COMPAÑIA 21",
+          "COMPAÑIA 22",
+          "COMPAÑIA 23",
+          "COMPAÑIA 24",
+          "COMPAÑIA 25",
+          "COMPAÑIA 26",
+          "COMPAÑIA 27",
+          "COMPAÑIA 29",
+          "COMPAÑIA 3",
+          "COMPAÑIA 30",
+          "COMPAÑIA 31",
+          "COMPAÑIA 32",
+          "COMPAÑIA 33",
+          "COMPAÑIA 34",
+          "COMPAÑIA 35",
+          "COMPAÑIA 37",
+          "COMPAÑIA 38",
+          "COMPAÑIA 39",
+          "COMPAÑIA 4",
+          "COMPAÑIA 5",
+          "COMPAÑIA 6",
+          "COMPAÑIA 7",
+          "COMPAÑIA 8"
+        ],
+        "indicadores": {
+          "rot_anual": 0.324,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.015
+        }
+      },
+      "senal": {
+        "etiqueta": "no concluyente",
+        "p": 0.6896705687882105
+      },
+      "en_comun": [
+        {
+          "texto": "prima vacacional de 50% o más",
+          "grupo": "4 de 5",
+          "resto": "16 de 33"
+        },
+        {
+          "texto": "motivo de baja: mejor horario",
+          "grupo": 0.3,
+          "resto": 0.1
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 29597419.299999993,
+        "costo_brecha_anual": 2847240.0,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "E3",
+    "anterior": null,
+    "segundos": 1.71,
+    "texto": "Las 5 empresas que ya dan prima vacacional de 100% pierden 20% de su plantilla al año; las otras 33, 38%. Para su empresa, esa diferencia equivale a $6.7 millones de pesos al año en bajas, contra $4.2 millones de pesos que costaría la medida. Como hay pocas empresas con esta combinación, se sumaron otras similares: tómelo como referencia, no como conclusión.",
+    "error": null,
+    "palabras": 62,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 36",
+        "plantilla_op": 1438,
+        "palancas": {
+          "sal_dia_ini": 323.61,
+          "aguinaldo_op": 15.0,
+          "prima_vac_op": 0.25,
+          "vales_op": 0.09,
+          "rutas_x100": 2.85118219749652
+        },
+        "indicadores": {
+          "rot_anual": 0.516,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "cambio": {
+        "palanca": "prima_vac_op",
+        "de": 0.25,
+        "a": 1.0
+      },
+      "palancas_movidas": {
+        "prima_vac_op": 1.0
+      },
+      "grupo": {
+        "n": 5,
+        "completado": true,
+        "ids": [
+          "COMPAÑIA 19",
+          "COMPAÑIA 37",
+          "COMPAÑIA 4",
+          "COMPAÑIA 7",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.20400000000000001,
+          "rot_temprana": 0.0,
+          "ausentismo": 0.004
+        }
+      },
+      "resto": {
+        "n": 33,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 10",
+          "COMPAÑIA 11",
+          "COMPAÑIA 12",
+          "COMPAÑIA 13",
+          "COMPAÑIA 14",
+          "COMPAÑIA 15",
+          "COMPAÑIA 16",
+          "COMPAÑIA 17",
+          "COMPAÑIA 18",
+          "COMPAÑIA 2",
+          "COMPAÑIA 20",
+          "COMPAÑIA 21",
+          "COMPAÑIA 22",
+          "COMPAÑIA 23",
+          "COMPAÑIA 24",
+          "COMPAÑIA 25",
+          "COMPAÑIA 26",
+          "COMPAÑIA 28",
+          "COMPAÑIA 29",
+          "COMPAÑIA 3",
+          "COMPAÑIA 30",
+          "COMPAÑIA 31",
+          "COMPAÑIA 32",
+          "COMPAÑIA 33",
+          "COMPAÑIA 34",
+          "COMPAÑIA 35",
+          "COMPAÑIA 38",
+          "COMPAÑIA 39",
+          "COMPAÑIA 40",
+          "COMPAÑIA 5",
+          "COMPAÑIA 6",
+          "COMPAÑIA 8"
+        ],
+        "indicadores": {
+          "rot_anual": 0.384,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.015
+        }
+      },
+      "senal": {
+        "etiqueta": "no concluyente",
+        "p": 0.44957578472162074
+      },
+      "en_comun": [
+        {
+          "texto": "aguinaldo mediano",
+          "grupo": 32.0,
+          "resto": 20.0
+        },
+        {
+          "texto": "motivo de baja: cuidado de hijos o familiares",
+          "grupo": 0.0,
+          "resto": 0.5
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 4188160.62,
+        "costo_brecha_anual": 6729840.0,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "E5",
+    "anterior": null,
+    "segundos": 1.83,
+    "texto": "Las 33 empresas que ya dan vales de 6% o más pierden 25% de su plantilla al año; las otras 2 empresas, 59%. Para su empresa, esa diferencia equivale a $5.7 millones de pesos al año en bajas, mientras que la medida, por ser un nivel menor al que hoy da, le ahorraría $5.1 millones de pesos. Con estos datos la señal no es concluyente: tómelo como referencia, no como conclusión.",
+    "error": null,
+    "palabras": 71,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 36",
+        "plantilla_op": 1438,
+        "palancas": {
+          "sal_dia_ini": 323.61,
+          "aguinaldo_op": 15.0,
+          "prima_vac_op": 0.25,
+          "vales_op": 0.09,
+          "rutas_x100": 2.85118219749652
+        },
+        "indicadores": {
+          "rot_anual": 0.516,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "cambio": {
+        "palanca": "vales_op",
+        "de": 0.09,
+        "a": 0.06
+      },
+      "palancas_movidas": {
+        "vales_op": 0.06
+      },
+      "grupo": {
+        "n": 33,
+        "completado": false,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 12",
+          "COMPAÑIA 14",
+          "COMPAÑIA 16",
+          "COMPAÑIA 17",
+          "COMPAÑIA 18",
+          "COMPAÑIA 19",
+          "COMPAÑIA 2",
+          "COMPAÑIA 20",
+          "COMPAÑIA 21",
+          "COMPAÑIA 22",
+          "COMPAÑIA 23",
+          "COMPAÑIA 24",
+          "COMPAÑIA 25",
+          "COMPAÑIA 26",
+          "COMPAÑIA 28",
+          "COMPAÑIA 29",
+          "COMPAÑIA 3",
+          "COMPAÑIA 30",
+          "COMPAÑIA 31",
+          "COMPAÑIA 32",
+          "COMPAÑIA 33",
+          "COMPAÑIA 34",
+          "COMPAÑIA 37",
+          "COMPAÑIA 38",
+          "COMPAÑIA 39",
+          "COMPAÑIA 4",
+          "COMPAÑIA 40",
+          "COMPAÑIA 5",
+          "COMPAÑIA 6",
+          "COMPAÑIA 7",
+          "COMPAÑIA 8",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.252,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "resto": {
+        "n": 2,
+        "ids": [
+          "COMPAÑIA 13",
+          "COMPAÑIA 15"
+        ],
+        "indicadores": {
+          "rot_anual": 0.5940000000000001,
+          "rot_temprana": 0.45,
+          "ausentismo": 0.077
+        }
+      },
+      "senal": {
+        "etiqueta": "no concluyente",
+        "p": 0.31949580206482253
+      },
+      "en_comun": [
+        {
+          "texto": "motivo de baja: mejor horario",
+          "grupo": 0.1,
+          "resto": 0.5
+        },
+        {
+          "texto": "manejan jornadas de 12 horas",
+          "grupo": "11 de 33",
+          "resto": "2 de 2"
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": -5095595.420999999,
+        "costo_brecha_anual": 5694480.0,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "R29-1",
+    "anterior": null,
+    "segundos": 1.63,
+    "texto": "Las 20 empresas que ya dan prima vacacional de 50% o más pierden 20% de su plantilla al año; las otras 18, 43%. Para su empresa, esa diferencia equivale a $5.0 millones de pesos al año en bajas, contra $250 mil pesos que costaría la medida. Con estos datos la señal no es concluyente: tómelo como referencia, no como conclusión.",
+    "error": null,
+    "palabras": 60,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 29",
+        "plantilla_op": 718,
+        "palancas": {
+          "sal_dia_ini": 290.25,
+          "aguinaldo_op": 26.0,
+          "prima_vac_op": 0.4,
+          "vales_op": 0.1,
+          "rutas_x100": 1.53203342618384
+        },
+        "indicadores": {
+          "rot_anual": 0.66,
+          "rot_temprana": 0.3,
+          "ausentismo": 0.15
+        }
+      },
+      "cambio": {
+        "palanca": "prima_vac_op",
+        "de": 0.4,
+        "a": 0.5
+      },
+      "palancas_movidas": {
+        "prima_vac_op": 0.5
+      },
+      "grupo": {
+        "n": 20,
+        "completado": false,
+        "ids": [
+          "COMPAÑIA 15",
+          "COMPAÑIA 18",
+          "COMPAÑIA 19",
+          "COMPAÑIA 2",
+          "COMPAÑIA 20",
+          "COMPAÑIA 21",
+          "COMPAÑIA 22",
+          "COMPAÑIA 24",
+          "COMPAÑIA 26",
+          "COMPAÑIA 28",
+          "COMPAÑIA 32",
+          "COMPAÑIA 34",
+          "COMPAÑIA 37",
+          "COMPAÑIA 38",
+          "COMPAÑIA 39",
+          "COMPAÑIA 4",
+          "COMPAÑIA 40",
+          "COMPAÑIA 5",
+          "COMPAÑIA 7",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.198,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.013999999999999999
+        }
+      },
+      "resto": {
+        "n": 18,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 10",
+          "COMPAÑIA 11",
+          "COMPAÑIA 12",
+          "COMPAÑIA 13",
+          "COMPAÑIA 14",
+          "COMPAÑIA 16",
+          "COMPAÑIA 17",
+          "COMPAÑIA 23",
+          "COMPAÑIA 25",
+          "COMPAÑIA 3",
+          "COMPAÑIA 30",
+          "COMPAÑIA 31",
+          "COMPAÑIA 33",
+          "COMPAÑIA 35",
+          "COMPAÑIA 36",
+          "COMPAÑIA 6",
+          "COMPAÑIA 8"
+        ],
+        "indicadores": {
+          "rot_anual": 0.432,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.015
+        }
+      },
+      "senal": {
+        "etiqueta": "no concluyente",
+        "p": 0.16032351989851024
+      },
+      "en_comun": [
+        {
+          "texto": "aguinaldo mediano",
+          "grupo": 24.0,
+          "resto": 16.0
+        },
+        {
+          "texto": "motivo de baja: mejores prestaciones",
+          "grupo": 0.1,
+          "resto": 0.4
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 250079.39999999994,
+        "costo_brecha_anual": 4975740.0,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "R15-1",
+    "anterior": null,
+    "segundos": 2.46,
+    "texto": "Las 30 empresas que ya dan vales de 8% o más pierden 27% de su plantilla al año; las otras 5, 38%. Para su empresa, esa diferencia equivale a $21.3 millones de pesos al año en bajas, contra $11.3 millones de pesos que costaría la medida. Con estos datos la señal no es concluyente: tómelo como referencia, no como conclusión.",
+    "error": null,
+    "palabras": 60,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 15",
+        "plantilla_op": 2662,
+        "palancas": {
+          "sal_dia_ini": 331.53,
+          "aguinaldo_op": 30.0,
+          "prima_vac_op": 0.6,
+          "vales_op": 0.045,
+          "rutas_x100": 0.300525920360631
+        },
+        "indicadores": {
+          "rot_anual": 0.804,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.15
+        }
+      },
+      "cambio": {
+        "palanca": "vales_op",
+        "de": 0.045,
+        "a": 0.08
+      },
+      "palancas_movidas": {
+        "vales_op": 0.08
+      },
+      "grupo": {
+        "n": 30,
+        "completado": false,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 12",
+          "COMPAÑIA 14",
+          "COMPAÑIA 16",
+          "COMPAÑIA 17",
+          "COMPAÑIA 18",
+          "COMPAÑIA 19",
+          "COMPAÑIA 2",
+          "COMPAÑIA 20",
+          "COMPAÑIA 21",
+          "COMPAÑIA 24",
+          "COMPAÑIA 25",
+          "COMPAÑIA 26",
+          "COMPAÑIA 28",
+          "COMPAÑIA 29",
+          "COMPAÑIA 3",
+          "COMPAÑIA 30",
+          "COMPAÑIA 31",
+          "COMPAÑIA 32",
+          "COMPAÑIA 33",
+          "COMPAÑIA 34",
+          "COMPAÑIA 36",
+          "COMPAÑIA 37",
+          "COMPAÑIA 38",
+          "COMPAÑIA 39",
+          "COMPAÑIA 4",
+          "COMPAÑIA 40",
+          "COMPAÑIA 5",
+          "COMPAÑIA 6",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.27,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.015
+        }
+      },
+      "resto": {
+        "n": 5,
+        "ids": [
+          "COMPAÑIA 13",
+          "COMPAÑIA 22",
+          "COMPAÑIA 23",
+          "COMPAÑIA 7",
+          "COMPAÑIA 8"
+        ],
+        "indicadores": {
+          "rot_anual": 0.384,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.01
+        }
+      },
+      "senal": {
+        "etiqueta": "no concluyente",
+        "p": 0.6884801216498686
+      },
+      "en_comun": [
+        {
+          "texto": "motivo de baja: mejor horario",
+          "grupo": 0.1,
+          "resto": 0.5
+        },
+        {
+          "texto": "motivo de baja: horario complicado",
+          "grupo": 0.1,
+          "resto": 0.5
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 11274357.286500001,
+        "costo_brecha_anual": 21322620.0,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  },
+  {
+    "id": "R15-3",
+    "anterior": null,
+    "segundos": 1.67,
+    "texto": "Las 7 empresas que ya tienen un salario inicial de $350 o más pierden 12% de su plantilla al año; las otras 32, 38%. Para su empresa, esa diferencia equivale a $27.3 millones de pesos al año en bajas, contra $17.9 millones de pesos que costaría la medida. Además, casi todas esas empresas también dan prima vacacional de 50% o más.",
+    "error": null,
+    "palabras": 61,
+    "cifras_inventadas": [],
+    "reglas_fallidas": [],
+    "en_vivo": "IA",
+    "estado": {
+      "meta": {
+        "version": 1
+      },
+      "empresa": {
+        "id": "COMPAÑIA 15",
+        "plantilla_op": 2662,
+        "palancas": {
+          "sal_dia_ini": 331.53,
+          "aguinaldo_op": 30.0,
+          "prima_vac_op": 0.6,
+          "vales_op": 0.045,
+          "rutas_x100": 0.300525920360631
+        },
+        "indicadores": {
+          "rot_anual": 0.804,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.15
+        }
+      },
+      "cambio": {
+        "palanca": "sal_dia_ini",
+        "de": 331.53,
+        "a": 350.0
+      },
+      "palancas_movidas": {
+        "sal_dia_ini": 350.0
+      },
+      "grupo": {
+        "n": 7,
+        "completado": false,
+        "ids": [
+          "COMPAÑIA 13",
+          "COMPAÑIA 19",
+          "COMPAÑIA 2",
+          "COMPAÑIA 27",
+          "COMPAÑIA 28",
+          "COMPAÑIA 40",
+          "COMPAÑIA 9"
+        ],
+        "indicadores": {
+          "rot_anual": 0.12,
+          "rot_temprana": 0.4,
+          "ausentismo": 0.004
+        }
+      },
+      "resto": {
+        "n": 32,
+        "ids": [
+          "COMPAÑIA 1",
+          "COMPAÑIA 10",
+          "COMPAÑIA 11",
+          "COMPAÑIA 12",
+          "COMPAÑIA 14",
+          "COMPAÑIA 16",
+          "COMPAÑIA 17",
+          "COMPAÑIA 18",
+          "COMPAÑIA 20",
+          "COMPAÑIA 21",
+          "COMPAÑIA 22",
+          "COMPAÑIA 23",
+          "COMPAÑIA 24",
+          "COMPAÑIA 25",
+          "COMPAÑIA 26",
+          "COMPAÑIA 29",
+          "COMPAÑIA 3",
+          "COMPAÑIA 30",
+          "COMPAÑIA 31",
+          "COMPAÑIA 32",
+          "COMPAÑIA 33",
+          "COMPAÑIA 34",
+          "COMPAÑIA 35",
+          "COMPAÑIA 36",
+          "COMPAÑIA 37",
+          "COMPAÑIA 38",
+          "COMPAÑIA 39",
+          "COMPAÑIA 4",
+          "COMPAÑIA 5",
+          "COMPAÑIA 6",
+          "COMPAÑIA 7",
+          "COMPAÑIA 8"
+        ],
+        "indicadores": {
+          "rot_anual": 0.378,
+          "rot_temprana": 0.5,
+          "ausentismo": 0.015
+        }
+      },
+      "senal": {
+        "etiqueta": "débil",
+        "p": 0.13328255354880705
+      },
+      "en_comun": [
+        {
+          "texto": "prima vacacional de 50% o más",
+          "grupo": "5 de 6",
+          "resto": "14 de 32"
+        },
+        {
+          "texto": "motivo de baja: cuidado de hijos o familiares",
+          "grupo": 0.2,
+          "resto": 0.5
+        }
+      ],
+      "pesos": {
+        "costo_medida_anual": 17946006.100000028,
+        "costo_brecha_anual": 27312120.000000004,
+        "supuestos": {
+          "costo_por_baja": 15000.0,
+          "costo_ruta_mensual": 35000.0
+        }
+      },
+      "explicacion": null
+    }
+  }
+]
