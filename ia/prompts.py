@@ -4,7 +4,7 @@ import re
 
 from config import MIN_GRUPO
 from ia.derivadas import cifras_derivadas
-from ia.reglas import necesita_advertencia
+from ia.reglas import limpiar, necesita_advertencia, oraciones
 
 PROMPT_SISTEMA = """Eres analista senior de compensación. Recibes en JSON una comparación entre la empresa \
 del usuario y empresas reales de una encuesta. Escribe exactamente tres oraciones en español, \
@@ -126,6 +126,27 @@ def aviso_senal(estado):
     if necesita_advertencia(estado):
         return AVISO_NO_CONCLUYENTE
     return None
+
+
+def _sin_espacios(texto):
+    return re.sub(r"\s+", "", texto)
+
+
+def pulir(texto, estado):
+    """Lo que se le arregla al texto de la IA antes de validarlo y mostrarlo.
+
+    1. limpiar(): "$14.4millones" -> "$14.4 millones", "millones,porque" -> "millones, porque".
+    2. El aviso fijo: si la IA lo copió con espacios de menos ("Conestos datos..."), se pone
+       el aviso exacto. Solo se toca si es el mismo aviso letra por letra sin contar espacios:
+       cualquier otra diferencia se queda como está, y las reglas la juzgan.
+    """
+    texto = limpiar(texto)
+    aviso = aviso_senal(estado)
+    if aviso:
+        partes = oraciones(texto)
+        if partes and _sin_espacios(partes[-1]) == _sin_espacios(aviso) and partes[-1] != aviso:
+            texto = texto[: texto.rindex(partes[-1])] + aviso
+    return texto
 
 
 def nombre_rasgo(texto):

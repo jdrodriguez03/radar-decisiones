@@ -24,6 +24,7 @@ import yaml
 
 import config
 from ia.explicar import _pedir_a_la_ia
+from ia.prompts import pulir
 from ia.reglas import fallas_graves, revisar
 from ia.validador import cifras_inventadas
 from motor.api import calcular_estado
@@ -59,6 +60,7 @@ def probar(caso_id, estado, anterior, cliente=None):
         texto = _pedir_a_la_ia(
             copy.deepcopy(estado), anterior, cliente, LIMITE_SEG, LIMITE_TOTAL_SEG, None, config.MODELO_IA
         )
+        texto = pulir(texto, estado)  # el mismo arreglo que hace la app antes de mostrar
         error = None
     except Exception as e:  # noqa: BLE001  sin llave, sin internet, API caída...
         texto, error = "", f"{type(e).__name__}: {e}"

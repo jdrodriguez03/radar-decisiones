@@ -142,6 +142,22 @@ def test_quita_mediano_del_nombre_del_rasgo():
     assert nombre_rasgo("manejan jornadas de 12 horas") == "manejan jornadas de 12 horas"
 
 
+def test_pulir_restaura_el_aviso_con_espacios_de_menos():
+    # R15-1, 14 de octubre: la IA escribió "Conestos datos la señal no es concluyente...".
+    from ia.prompts import AVISO_NO_CONCLUYENTE, pulir
+
+    estado = cargar("03_salario")
+    pegado = AVISO_NO_CONCLUYENTE.replace("Con estos", "Conestos")
+    assert pulir(f"Quedan 5 empresas. {pegado}", estado) == f"Quedan 5 empresas. {AVISO_NO_CONCLUYENTE}"
+
+
+def test_pulir_no_toca_un_aviso_distinto():
+    from ia.prompts import pulir
+
+    texto = "Quedan 5 empresas. La señal no es concluyente, tómelo con calma."
+    assert pulir(texto, cargar("03_salario")) == texto  # otra frase: la juzgan las reglas, no se reescribe
+
+
 def test_resto_muy_chico_lleva_nota():
     from ia.prompts import _para_ia
 
