@@ -1,5 +1,6 @@
 import streamlit as st
 
+# Tema oscuro (config.toml) aplicado a la estructura de la plantilla
 FONDO = "#0B0F14"      # fondo casi negro
 SUPERFICIE = "#132217" # pastillas, encabezado de tabla, triángulo oscuro
 TRIANGULO = "#1E5A4A"  # triángulo secundario
@@ -8,7 +9,6 @@ TEXTO = "#D8DDE3"      # texto principal
 ACENTO = "#46D3AA"     # único color de resalte: títulos y cifra del grupo
 GRIS = "#8B949E"       # textos secundarios
 AMBAR = "#D29922"      # para valores supuestos
-
 
 TAM_CIFRA = "40px"
 TAM_TITULO = "44px"
@@ -59,6 +59,11 @@ def aplicar_estilos():
         [class*="st-key-menos_"] button p, [class*="st-key-mas_"] button p {{
             font-size: 24px; font-style: normal; font-weight: 700; line-height: 1; margin: 0; }}
         [class*="st-key-menos_"] button:hover p, [class*="st-key-mas_"] button:hover p {{ color: {ACENTO}; }}
+
+        button[kind="primary"], button[data-testid="stBaseButton-primary"] {{
+            background: {ACENTO}; border: none; border-radius: 16px; color: {FONDO}; font-weight: 700; }}
+        button[kind="primary"]:hover, button[data-testid="stBaseButton-primary"]:hover {{ background: {TEXTO}; color: {FONDO}; }}
+        button[kind="primary"] p, button[data-testid="stBaseButton-primary"] p {{ color: {FONDO}; }}
 
         /* tabla de indicadores */
         .tabla {{ width: 100%; border-collapse: collapse; border: 3px solid {LINEA}; }}
