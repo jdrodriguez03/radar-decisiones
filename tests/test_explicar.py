@@ -219,12 +219,12 @@ def test_el_efecto_de_escritura_respeta_la_pausa():
 
 
 
-def test_pide_temperatura_baja():
-    import config
-
+def test_no_manda_temperatura():
+    # La librería anthropic 1.11 ya no acepta temperature: mandarla lanzaba TypeError
+    # y TODA explicación caía a la plantilla (corrida del 14 de octubre).
     cliente = ClienteFalso(trozos=["Las 22 empresas."])
     "".join(explicar(cargar_estado(), None, cliente=cliente, limite=1))
-    assert cliente.pedido["temperature"] == config.TEMPERATURA_IA
+    assert "temperature" not in cliente.pedido
 
 
 def test_numero_pegado_se_arregla_antes_de_mostrar():

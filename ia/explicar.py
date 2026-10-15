@@ -53,7 +53,6 @@ def _leer_flujo(cliente, estado, anterior, cola, cancelar, abierto, modelo):
         with cliente.messages.stream(
         model=modelo,
         max_tokens=300,
-        temperature=config.TEMPERATURA_IA,
         system=PROMPT_SISTEMA,
         messages=[{"role": "user", "content": armar_mensaje(estado, anterior)}],
          **_opciones_modelo(modelo),
