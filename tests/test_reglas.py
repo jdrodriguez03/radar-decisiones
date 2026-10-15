@@ -84,3 +84,4 @@ def test_numero_pegado_falla_y_limpiar_lo_arregla():
     assert "tiene un número pegado a una palabra" in revisar(texto, cargar("01_aguinaldo"))
     assert limpiar(texto) == "Las 22 empresas: contra $14.4 millones de la medida."
     assert limpiar("$6.3 millones, 22% y 1,438") == "$6.3 millones, 22% y 1,438"  # lo correcto no se toca
+    assert limpiar("$5.1 millones,porque hoy da vales") == "$5.1 millones, porque hoy da vales"

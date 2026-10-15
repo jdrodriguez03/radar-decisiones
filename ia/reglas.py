@@ -38,12 +38,15 @@ OTRAS_PROHIBIDAS = [
 ADVERTENCIAS = ["concluyente", "conclusi", "similares", "cautela", "pocas empresas"]
 
 
-# Un número pegado a una letra: "$14.4millones". La IA a veces se come el espacio.
-NUMERO_PEGADO = re.compile(r"(\d)([A-Za-zÁÉÍÓÚÑáéíóúñ])")
+# Un número o una coma pegados a una letra: "$14.4millones", "millones,porque". La IA a veces se come
+# el espacio. La coma de miles ("1,438") no cuenta: después de ella viene un número, no una letra.
+NUMERO_PEGADO = re.compile(r"([\d,;])([A-Za-zÁÉÍÓÚÑáéíóúñ])")
 
 
 def limpiar(texto):
     """Arregla lo que se puede arreglar sin cambiar el sentido: "$14.4millones" -> "$14.4 millones".
+
+    También "millones,porque" -> "millones, porque".
 
     ia/explicar.py lo aplica antes de validar y mostrar. "lamedida" no se puede arreglar
     en general (habría que saber español): para eso está la temperatura baja.

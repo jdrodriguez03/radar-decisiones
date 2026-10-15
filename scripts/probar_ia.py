@@ -10,7 +10,7 @@ Qué hace, caso por caso:
 
 Correr desde la raíz del repo, con la llave en .streamlit/secrets.toml o en ANTHROPIC_API_KEY:
     python scripts/probar_ia.py              # los 15 casos
-    python scripts/probar_ia.py G1 G2 S3     # solo esos casos (para afinar el prompt rápido)
+    python scripts/probar_ia.py G1 G2 S3     # solo esos casos; en el archivo se reemplazan solo esos
 """
 import copy
 import json
@@ -100,6 +100,21 @@ def tabla_markdown(resultados):
     return "\n".join(filas) + "\n\n" + "\n".join(textos)
 
 
+def guardar(resultados):
+    """Escribe docs/textos_ia.json. Si se corrieron solo algunos casos, reemplaza solo esos.
+
+    Así, después de arreglar un caso, basta con volver a correr ese caso (y no los 15)
+    para que tests/test_reglas_ia.py lo revise con su texto nuevo.
+    """
+    previos = {}
+    if RUTA_SALIDA.exists():
+        previos = {r["id"]: r for r in json.loads(RUTA_SALIDA.read_text(encoding="utf-8"))}
+    previos.update({r["id"]: r for r in resultados})
+    ordenados = [previos[cid] for cid in CASOS if cid in previos]
+    RUTA_SALIDA.write_text(json.dumps(ordenados, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"\nGuardado en docs/{RUTA_SALIDA.name} ({len(resultados)} de {len(ordenados)} casos actualizados)")
+
+
 def main(pedidos=None, cliente=None):
     empresas = cargar()
     supuestos = json.loads(config.RUTA_SUPUESTOS.read_text(encoding="utf-8"))
@@ -114,9 +129,7 @@ def main(pedidos=None, cliente=None):
         print(f"{cid:6} {r['segundos']:>5}s  {'OK   ' if ok else 'FALLA'}  en vivo: {r['en_vivo']}")
         resultados.append(r)
 
-    if not pedidos:  # solo la corrida completa reescribe el archivo que lee la prueba
-        RUTA_SALIDA.write_text(json.dumps(resultados, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        print(f"\nGuardado en {RUTA_SALIDA.relative_to(config.RAIZ)}")
+    guardar(resultados)
 
     bien = sum(1 for r in resultados if not (r["cifras_inventadas"] or r["reglas_fallidas"]))
     print(f"\n{bien} de {len(resultados)} cumplen todas las reglas\n")
