@@ -3,7 +3,7 @@ import pytest
 
 from motor.comparar import comparar
 from motor.datos import cargar
-from motor.en_comun import diferencias_principales
+from motor.en_comun import _conteo_si, diferencias_principales
 
 
 # Se define un fixture de pytest llamado "empresas" que carga los datos de las 
@@ -63,6 +63,41 @@ def test_columnas_numericas_reportan_medianas():
     assert salario["resto"] == 3.0
     assert comedor["grupo"] == "2 de 2"
     assert comedor["resto"] == "0 de 2"
+
+
+def test_columnas_no_numericas_se_coaccionan_a_numeros_o_nulos():
+    grupo = pd.DataFrame(
+        {
+            "empresa": ["A", "B"],
+            "sal_dia_ini": ["10.0", "12.0"],
+        }
+    )
+    resto = pd.DataFrame(
+        {
+            "empresa": ["C", "D"],
+            "sal_dia_ini": ["2.0", "no disponible"],
+        }
+    )
+
+    diferencias = diferencias_principales(grupo, resto)
+
+    salario = next(item for item in diferencias if item["texto"] == "salario inicial mediano")
+    assert salario["grupo"] == 11.0
+    assert salario["resto"] == 2.0
+
+
+def test_conteo_si_conserva_nulos_booleanos_y_validacion():
+    valores, _ = _conteo_si(
+        "comedor",
+        pd.Series(["Sí", None, True]),
+        pd.Series(["No", False, None]),
+    )
+
+    assert valores == {"grupo": "2 de 2", "resto": "0 de 2"}
+
+    with pytest.raises(ValueError, match="Valores no reconocidos"):
+        _conteo_si("comedor", pd.Series(["quizá"]), pd.Series(["No"]))
+
 
 # test para verificar que la función diferencias_principales maneja 
 # correctamente los casos en los que n es cero o negativo, 

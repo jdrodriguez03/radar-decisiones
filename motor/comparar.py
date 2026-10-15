@@ -1,12 +1,11 @@
 """Universo, grupo, resto, completado a 5 y señal. Dueño: Aleja."""
 from __future__ import annotations
 
-from math import isfinite
+from math import dist, isfinite
 from numbers import Real
 
 import pandas as pd
 from scipy.stats import mannwhitneyu
-from sklearn.neighbors import NearestNeighbors
 
 from config import MIN_GRUPO, PALANCAS
 
@@ -65,21 +64,33 @@ def completar_con_similares(
     if candidatos.empty:
         return candidatos.copy()
 
-    escalas = pd.Series(
-        {columna: PALANCAS[columna][1] - PALANCAS[columna][0] for columna in columnas},
-        dtype=float,
+    escalas = {
+        columna: PALANCAS[columna][1] - PALANCAS[columna][0]
+        for columna in columnas
+    }
+    objetivo = tuple(
+        float(palancas_movidas[columna]) / escalas[columna]
+        for columna in columnas
     )
-    matriz = candidatos[columnas].astype(float).div(escalas, axis="columns")
-    objetivo = pd.DataFrame([palancas_movidas], columns=columnas).astype(float)
-    objetivo = objetivo.div(escalas, axis="columns")
-# Se utiliza NearestNeighbors para encontrar las k empresas más cercanas en el espacio de las palancas movidas.
-    vecinos = NearestNeighbors(n_neighbors=min(k, len(candidatos)))
-    vecinos.fit(matriz)
-    distancias, indices = vecinos.kneighbors(objetivo)
-    cercanos = candidatos.iloc[indices[0]].copy()
-    cercanos["_distancia"] = distancias[0]
-    cercanos = cercanos.sort_values(["_distancia", "empresa"], kind="stable")
-    return cercanos.drop(columns="_distancia")
+    distancias = [
+        dist(
+            tuple(
+                float(valor) / escalas[columna]
+                for columna, valor in zip(columnas, fila)
+            ),
+            objetivo,
+        )
+        for fila in candidatos[columnas].itertuples(index=False, name=None)
+    ]
+    ids = candidatos["empresa"].tolist()
+    posiciones = sorted(
+        range(len(distancias)),
+        key=lambda posicion: (
+            distancias[posicion],
+            (1, "") if pd.isna(ids[posicion]) else (0, ids[posicion]),
+        ),
+    )[:k]
+    return candidatos.iloc[posiciones]
 
 # función para calcular la señal de Mann–Whitney entre el grupo y el resto.
 #Para ver si hay diferencias significativas en la rotación anual entre el grupo y el resto.
@@ -121,7 +132,12 @@ def comparar(
     """Construye el universo elegible, grupo, resto, medianas y señal."""
     if "empresa" not in empresas:
         raise ValueError("Falta la columna requerida 'empresa'.")
-    seleccionada = empresas.loc[empresas["empresa"].eq(empresa_id)]
+    columnas_seleccionada = ["empresa"]
+    if solo_tamano and "banda" in empresas:
+        columnas_seleccionada.append("banda")
+    seleccionada = empresas.loc[
+        empresas["empresa"].eq(empresa_id), columnas_seleccionada
+    ]
     if len(seleccionada) != 1:
         raise ValueError(f"Se esperaba una empresa '{empresa_id}'; se encontraron {len(seleccionada)}.")
     if not isinstance(palancas_movidas, dict):
@@ -133,32 +149,48 @@ def comparar(
         if not isinstance(valor, Real) or isinstance(valor, bool) or not isfinite(float(valor)):
             raise ValueError(f"El nivel de {palanca} debe ser un número finito.")
 # Se construye el universo de empresas excluyendo la empresa seleccionada y filtrando por tamaño si es necesario.
-    universo = empresas.loc[empresas["empresa"].ne(empresa_id)].copy()
+    columnas_movidas = list(palancas_movidas)
     if solo_tamano:
         if "banda" not in empresas:
             raise ValueError("Falta la columna 'banda' necesaria para filtrar por tamaño.")
         banda = seleccionada.iloc[0]["banda"]
         if pd.isna(banda):
             raise ValueError(f"La empresa '{empresa_id}' no tiene una banda de tamaño definida.")
-        universo = universo.loc[universo["banda"].eq(banda)]
-# Se filtra el universo según las palancas movidas y se separa en grupo y resto.
-    columnas_movidas = list(palancas_movidas)
-    faltantes = set(columnas_movidas).difference(universo.columns)
+    faltantes = set(columnas_movidas).difference(empresas.columns)
     if faltantes:
         raise ValueError(f"Faltan columnas de palancas en el DataFrame: {sorted(faltantes)}")
+
+    columnas_universo = [
+        "empresa",
+        *INDICADORES.values(),
+        *columnas_movidas,
+        *(["banda"] if solo_tamano else []),
+    ]
+    columnas_universo = list(
+        dict.fromkeys(columna for columna in columnas_universo if columna in empresas)
+    )
+    universo = empresas.loc[
+        empresas["empresa"].ne(empresa_id), columnas_universo
+    ]
+    if solo_tamano:
+        universo = universo.loc[universo["banda"].eq(banda)]
+# Se filtra el universo según las palancas movidas y se separa en grupo y resto.
     if columnas_movidas:
         universo = universo.dropna(subset=columnas_movidas)
 # Se crea una máscara booleana para identificar las empresas que cumplen con los niveles de las palancas movidas.
     mascara_grupo = pd.Series(True, index=universo.index)
     for palanca, nivel in palancas_movidas.items():
         mascara_grupo &= universo[palanca].ge(nivel)
-    grupo = universo.loc[mascara_grupo].copy()
-    resto = universo.loc[~mascara_grupo].copy()
+    grupo = universo.loc[mascara_grupo]
+    resto = universo.loc[~mascara_grupo]
 # Se verifica si el grupo es menor que el tamaño mínimo y se completa con empresas similares si es necesario.
     completado = len(grupo) < MIN_GRUPO
     if completado and palancas_movidas:
-        grupo = completar_con_similares(universo, palancas_movidas, MIN_GRUPO)
-        resto = universo.loc[~universo.index.isin(grupo.index)].copy()
+        adicionales = completar_con_similares(
+            resto, palancas_movidas, MIN_GRUPO - len(grupo)
+        )
+        grupo = pd.concat([grupo, adicionales])
+        resto = universo.loc[~universo.index.isin(grupo.index)]
 
     return {
         "grupo": resumen(grupo),
