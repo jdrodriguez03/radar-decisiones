@@ -31,10 +31,24 @@ OTRAS_PROHIBIDAS = [
     "promedio", "dólar", "$0.0",  # son medianas; son pesos; "$0.0 millones" confunde
     "grupo de comparación", "brecha", "rotación", "rotar como",  # jerga del equipo
     "sector", "región",  # el JSON no trae sector ni región
+    "así que", "tan pocas", "con solo",  # explican por qué la señal es débil: el aviso ya viene escrito
 ]
 
 # Alguna de estas debe aparecer si la señal es "no concluyente" o el grupo se completó.
 ADVERTENCIAS = ["concluyente", "conclusi", "similares", "cautela", "pocas empresas"]
+
+
+# Un número pegado a una letra: "$14.4millones". La IA a veces se come el espacio.
+NUMERO_PEGADO = re.compile(r"(\d)([A-Za-zÁÉÍÓÚÑáéíóúñ])")
+
+
+def limpiar(texto):
+    """Arregla lo que se puede arreglar sin cambiar el sentido: "$14.4millones" -> "$14.4 millones".
+
+    ia/explicar.py lo aplica antes de validar y mostrar. "lamedida" no se puede arreglar
+    en general (habría que saber español): para eso está la temperatura baja.
+    """
+    return NUMERO_PEGADO.sub(r"\1 \2", texto)
 
 
 def oraciones(texto):
@@ -86,6 +100,8 @@ def revisar(texto, estado):
     total = len(oraciones(texto))
     if total > MAX_ORACIONES:
         fallas.append(f"tiene {total} oraciones (máximo {MAX_ORACIONES})")
+    if NUMERO_PEGADO.search(texto):
+        fallas.append("tiene un número pegado a una palabra")
     palabras = len(texto.split())
     if palabras > MAX_PALABRAS:
         fallas.append(f"tiene {palabras} palabras (máximo {MAX_PALABRAS})")

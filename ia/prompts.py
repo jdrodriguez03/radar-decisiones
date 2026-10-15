@@ -1,7 +1,10 @@
 """Prompt de sistema y armado del mensaje. Dueño: Julian."""
 import json
+import re
 
+from config import MIN_GRUPO
 from ia.derivadas import cifras_derivadas
+from ia.reglas import necesita_advertencia
 
 PROMPT_SISTEMA = """Eres analista senior de compensación. Recibes en JSON una comparación entre la empresa \
 del usuario y empresas reales de una encuesta. Escribe exactamente tres oraciones en español, \
@@ -22,7 +25,8 @@ Si el JSON trae "nota_pesos", esta oración dice eso con el porcentaje que pierd
 3. Algo más que tienen en común esas mismas empresas frente a las demás, sin cifras. \
 Usa el único elemento de "en_comun": nombra el rasgo en palabras con su "como_decirlo" tal cual \
 (por ejemplo, "la mayoría de esas empresas también da prima vacacional de 50% o más" o "esas empresas suelen tener un salario inicial más alto"); \
-nunca digas "todas" si "como_decirlo" no dice "todas". Si "en_comun" viene vacío, no menciones ningún rasgo. Si la señal es "no concluyente" o el grupo se completó con empresas similares, di eso aquí con palabras sencillas en lugar de lo anterior. \
+nunca digas "todas" si "como_decirlo" no dice "todas". Si "en_comun" viene vacío, no menciones ningún rasgo. \
+Si el JSON trae "aviso", esta oración es ese aviso, copiado tal cual y sin agregar nada más. \
 Si el usuario aún no ha movido ninguna palanca, esta oración lo invita a mover una para ver qué muestran las empresas que ya la aplican.
 
 Si el usuario aún no ha movido ninguna palanca, la oración 2 no habla de pesos: dice el tamaño del problema en personas, \
@@ -47,7 +51,10 @@ en la oración 1 puedes decir qué tan común es la medida ("22 de las 38 empres
 en la oración 2 puedes decir el costo como porcentaje de la nómina operativa base o la diferencia en personas al año.
 - Las proporciones sencillas dilas con palabras ("la mitad", "la mayoría", "casi todas"); no escribas "1 de cada 2".
 - No expliques por qué la señal es clara, débil o no concluyente (no digas "así que" ni "con tan pocas empresas"): solo di cuál es.
-- Porcentajes al entero más cercano (0.516 es 52%, no 51%); los valores como 0.25 de prima o de vales se escriben como porcentaje (25%). Pesos en millones con un decimal (6341580 es $6.3 millones de pesos).
+- Porcentajes al entero más cercano (0.516 es 52%, no 51%); los valores como 0.25 de prima o de vales se escriben como porcentaje (25%). Pesos en millones con un decimal (6341580 es $6.3 millones de pesos); \
+los montos de menos de un millón, en miles sin decimales (250079 es $250 mil pesos).
+- Si el JSON trae "nota_resto", las demás empresas son muy pocas: escribe "las otras N empresas" con su número en lugar de "las demás".
+- Deja siempre un espacio entre un número y la palabra que le sigue ("$14.4 millones", no "$14.4millones").
 - Todos los montos están en pesos mexicanos: nunca los llames dólares ni los conviertas a otra moneda.
 - Si la diferencia en pesos es 0 (su empresa ya pierde igual o menos gente que esas empresas), dilo así en la segunda oración, sin comparar costos.
 - Responde solo con el texto de la explicación, sin títulos, listas ni comillas.
@@ -66,6 +73,8 @@ def como_decirlo(rasgo):
         proporcion = tienen / total if total else 0
         if proporcion == 1:
             return "todas"
+        if proporcion == 0:
+            return "ninguna"
         if proporcion >= 0.8:
             return "casi todas"
         if proporcion > 0.5:
@@ -100,6 +109,30 @@ def rasgos_utiles(estado):
     return [r for r in estado.get("en_comun") or [] if not any(m in r.get("texto", "") for m in movidas)]
 
 
+AVISO_COMPLETADO = (
+    "Como hay pocas empresas con esta combinación, se sumaron otras similares: tómelo como referencia, no como conclusión."
+)
+AVISO_NO_CONCLUYENTE = "Con estos datos la señal no es concluyente: tómelo como referencia, no como conclusión."
+
+
+def aviso_senal(estado):
+    """La frase de advertencia ya escrita, o None si no hace falta.
+
+    Se le da hecha a la IA (como nota_pesos): cuando la inventaba, explicaba por qué
+    ("con solo 20 empresas") o la unía al rasgo con "así que", que no tiene lógica.
+    """
+    if (_dato(estado, ("grupo", "completado"))):
+        return AVISO_COMPLETADO
+    if necesita_advertencia(estado):
+        return AVISO_NO_CONCLUYENTE
+    return None
+
+
+def nombre_rasgo(texto):
+    """'fondo de ahorro mediano' -> 'fondo de ahorro': "mediano" es jerga del motor, no del directivo."""
+    return re.sub(r"\s+median[oa]s?\b", "", texto).strip()
+
+
 def _para_ia(estado):
     """Copia del estado sin lo que la IA no necesita (ids, la explicación vieja y el último clic).
 
@@ -112,7 +145,18 @@ def _para_ia(estado):
         if parte in limpio:
             limpio[parte] = {k: v for k, v in limpio[parte].items() if k != "ids"}
     if "en_comun" in limpio:
-        limpio["en_comun"] = [{**rasgo, "como_decirlo": como_decirlo(rasgo)} for rasgo in rasgos_utiles(estado)[:1]]
+        # Con aviso no se manda el rasgo: la IA juntaba los dos ("no es concluyente, así que esas
+        # empresas...") y pasaba de 75 palabras. Lo que no recibe, no lo puede usar.
+        rasgos = [] if necesita_advertencia(estado) else rasgos_utiles(estado)[:1]
+        limpio["en_comun"] = [
+            {**rasgo, "texto": nombre_rasgo(rasgo.get("texto", "")), "como_decirlo": como_decirlo(rasgo)} for rasgo in rasgos
+        ]
+    aviso = aviso_senal(estado)
+    if aviso:
+        limpio["aviso"] = aviso
+    n_resto = _dato(estado, ("resto", "n"))
+    if estado.get("palancas_movidas") and n_resto is not None and 0 < n_resto < MIN_GRUPO:
+        limpio["nota_resto"] = f"Las demás son solo {n_resto} empresas: escribe \"las otras {n_resto} empresas\"."
     if estado.get("cambio") and (_dato(estado, ("pesos", "costo_brecha_anual")) or 0) <= 0:
         limpio["nota_pesos"] = "Su empresa ya pierde igual o menos gente al año que esas empresas: no hay diferencia en pesos a su favor."
     derivadas = cifras_derivadas(estado)

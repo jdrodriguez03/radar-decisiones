@@ -101,3 +101,51 @@ def test_el_prompt_pide_maximo_75_palabras_y_sin_cuentas_propias():
     assert "máximo 75 palabras" in PROMPT_SISTEMA
     assert "No hagas cuentas propias" in PROMPT_SISTEMA
     assert "1 de cada 2" in PROMPT_SISTEMA  # la regla que pide decir "la mitad" con palabras
+
+
+# --- Afinado con los 15 estados reales (tarea 3) ---
+
+def test_con_aviso_no_se_manda_el_rasgo():
+    # 03: señal no concluyente. Antes la IA juntaba aviso y rasgo con "así que" y pasaba de 75 palabras.
+    from ia.prompts import AVISO_NO_CONCLUYENTE, _para_ia
+
+    datos = _para_ia(cargar("03_salario"))
+    assert datos["en_comun"] == []
+    assert datos["aviso"] == AVISO_NO_CONCLUYENTE
+
+
+def test_grupo_completado_lleva_su_aviso():
+    from ia.prompts import AVISO_COMPLETADO, _para_ia
+
+    estado = cargar("03_salario")
+    estado["grupo"]["completado"] = True
+    assert _para_ia(estado)["aviso"] == AVISO_COMPLETADO
+
+
+def test_senal_clara_no_lleva_aviso_y_si_rasgo():
+    from ia.prompts import _para_ia
+
+    datos = _para_ia(cargar("01_aguinaldo"))
+    assert "aviso" not in datos
+    assert len(datos["en_comun"]) == 1
+
+
+def test_cero_de_cinco_es_ninguna():
+    assert como_decirlo({"grupo": "0 de 5", "resto": "13 de 33"}) == "ninguna"
+
+
+def test_quita_mediano_del_nombre_del_rasgo():
+    from ia.prompts import nombre_rasgo
+
+    assert nombre_rasgo("fondo de ahorro mediano") == "fondo de ahorro"
+    assert nombre_rasgo("aguinaldo mediano") == "aguinaldo"
+    assert nombre_rasgo("manejan jornadas de 12 horas") == "manejan jornadas de 12 horas"
+
+
+def test_resto_muy_chico_lleva_nota():
+    from ia.prompts import _para_ia
+
+    estado = cargar("01_aguinaldo")
+    estado["resto"]["n"] = 2
+    assert _para_ia(estado)["nota_resto"] == 'Las demás son solo 2 empresas: escribe "las otras 2 empresas".'
+    assert "nota_resto" not in _para_ia(cargar("01_aguinaldo"))  # 16 empresas: no hace falta

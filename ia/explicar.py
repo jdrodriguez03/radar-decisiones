@@ -12,7 +12,7 @@ import config
 from ia.cache import buscar
 from ia.plantilla import plantilla
 from ia.prompts import PROMPT_SISTEMA, armar_mensaje
-from ia.reglas import fallas_graves
+from ia.reglas import fallas_graves, limpiar
 from ia.validador import es_valido
 
 PAUSA_MAX_SEG = 10  # máximo entre un trozo y el siguiente, ya empezado el texto
@@ -53,6 +53,7 @@ def _leer_flujo(cliente, estado, anterior, cola, cancelar, abierto, modelo):
         with cliente.messages.stream(
         model=modelo,
         max_tokens=300,
+        temperature=config.TEMPERATURA_IA,
         system=PROMPT_SISTEMA,
         messages=[{"role": "user", "content": armar_mensaje(estado, anterior)}],
          **_opciones_modelo(modelo),
@@ -152,6 +153,7 @@ def _texto_aprobado(estado, anterior, cliente, limite, limite_total, latido, mod
         texto = _pedir_a_la_ia(estado, anterior, cliente, limite, limite_total, latido, modelo)
         if not texto:
             raise ValueError("la IA devolvió un texto vacío")
+        texto = limpiar(texto)  # "$14.4millones" -> "$14.4 millones", antes de validar y mostrar
         if not es_valido(texto, estado, anterior):
             raise ValueError("la IA escribió una cifra que no está en los datos")
         if fallas_graves(texto, estado):

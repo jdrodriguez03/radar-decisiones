@@ -38,6 +38,7 @@ def _formas(valor):
 
     0.222   -> 0.22, 22.2, 22      (proporción: se escribe como porcentaje)
     6341580 -> 6341580, 6.3        (pesos: se escriben en millones con un decimal)
+    250079  -> 250079, 0.3, 250    (menos de un millón: también en miles, "$250 mil")
     323.61  -> 323.61, 324         (salario: con centavos o redondeado)
     """
     v = float(valor)
@@ -52,6 +53,8 @@ def _formas(valor):
         }
     if abs(v) >= 100_000:  # montos en pesos: "$6.3 millones"
         formas.add(_redondear(round(v / 1_000_000, 1)))
+    if 100_000 <= abs(v) < 1_000_000:  # menos de un millón: "$250 mil"
+        formas.add(_redondear(round(v / 1_000)))
     return formas
 
 

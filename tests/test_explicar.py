@@ -217,3 +217,19 @@ def test_el_efecto_de_escritura_respeta_la_pausa():
     "".join(explicar(cargar_estado(), None, cliente=cliente, limite=1, pausa=0.05))
     assert time.perf_counter() - inicio >= 0.2  # 5 palabras con 0.05 s entre cada una
 
+
+
+def test_pide_temperatura_baja():
+    import config
+
+    cliente = ClienteFalso(trozos=["Las 22 empresas."])
+    "".join(explicar(cargar_estado(), None, cliente=cliente, limite=1))
+    assert cliente.pedido["temperature"] == config.TEMPERATURA_IA
+
+
+def test_numero_pegado_se_arregla_antes_de_mostrar():
+    estado = cargar_estado()
+    cliente = ClienteFalso(trozos=["Las 22 empresas ", "pierden 22% al año; equivale a $6.3millones."])
+    texto = "".join(explicar(estado, None, cliente=cliente, limite=1))
+    assert "$6.3 millones" in texto
+    assert estado["explicacion"]["fuente"] == "llm"

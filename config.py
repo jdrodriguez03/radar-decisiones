@@ -36,6 +36,7 @@ COSTO_POR_BAJA = 15000
 
 # IA
 MODELO_IA = "claude-sonnet-5-5"
+TEMPERATURA_IA = 0.3  # baja: textos más parecidos entre sí y más fieles a la forma pedida
 TIEMPO_LIMITE_IA_SEG = 4  # si la primera palabra no llega en este tiempo, sale la plantilla
 TIEMPO_TOTAL_IA_SEG = 8  # si el texto completo no llega en este tiempo, sale la plantilla
 PAUSA_ESCRITURA_SEG = 0.03  # el efecto de escritura: una palabra cada 30 ms (unos 2 s para 70 palabras)
