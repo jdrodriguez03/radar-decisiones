@@ -4,13 +4,17 @@ import streamlit as st
 
 EPS = 1e-9
 
+
 def _moneda(v):
     return f"${v:,.2f}"
+
 
 def _pct(v):
     return f"{v:.1%}"
 
 
+# Rangos y pasos de la tabla de controles del proyecto.
+# prima y vales se guardan como fracción (0.25 = 25%), igual que el contrato.
 CONTROLES = {
     "sal_dia_ini": {
         "nombre": "Salario diario inicial", "min": 250.0, "max": 380.0, "paso": 10.0,
@@ -40,16 +44,24 @@ def _k(clave):
 
 
 def _rango(cfg, real):
-    """Mismo paso, pero con la cuadrícula anclada al valor real (así el slider no lo ajusta)."""
+    """Mismo paso, con la cuadrícula anclada al valor real y un rango que siempre lo incluye.
+
+    Si el valor real queda fuera del rango de la tabla (por ejemplo 15.46 rutas con máximo 10.8),
+    el rango se extiende hasta ese valor para que el slider no falle.
+    """
     p = cfg["paso"]
-    n_abajo = int((real - cfg["min"] + EPS) // p)
-    n_arriba = int((cfg["max"] - real + EPS) // p)
-    return round(real - n_abajo * p, 6), round(real + n_arriba * p, 6)
+    piso, techo = min(cfg["min"], real), max(cfg["max"], real)
+    n_abajo = int((real - piso + EPS) // p)
+    n_arriba = int((techo - real + EPS) // p)
+    lo, hi = round(real - n_abajo * p, 6), round(real + n_arriba * p, 6)
+    if hi <= lo:  # el slider necesita un mínimo menor que el máximo
+        hi = round(lo + p, 6)
+    return lo, hi
 
 
 def _falta(valor):
     """True si la palanca no tiene dato (None o NaN), como pasa con algunas empresas de la encuesta."""
-    return valor is None
+    return valor is None or valor != valor
 
 
 def _iniciar(perfil):
@@ -66,6 +78,12 @@ def _iniciar(perfil):
         for c, v in reales.items():
             st.session_state[_k(c)] = v
         st.session_state["_firma_perfil"] = firma
+        st.session_state.pop("estado_explicado", None)  # otra empresa: no hay última explicación
+    # Streamlit borra el valor de un slider cuando una ejecución no lo dibuja (por ejemplo, al ver «Mi empresa»
+    # sin enviar). Si pasó, se restaura con el último valor conocido en lugar de fallar.
+    for clave, real in st.session_state["_reales"].items():
+        if _k(clave) not in st.session_state:
+            st.session_state[_k(clave)] = st.session_state["_previos"].get(clave, real)
 
 
 def _marcar_click():
@@ -99,10 +117,15 @@ def _restablecer():
         st.session_state[_k(c)] = v
     st.session_state["_previos"] = dict(reales)
     st.session_state["cambio"] = None
+    st.session_state.pop("estado_explicado", None)  # restablecer también borra la última explicación
 
 
-def render(perfil):
-    """Dibuja los controles y devuelve (palancas_movidas, cambio)."""
+def render(perfil, con_guardar=False):
+    """Dibuja los controles y devuelve (palancas_movidas, cambio).
+
+    Con con_guardar=True pone «Guardar escenario» junto a Restablecer y devuelve un tercer valor:
+    True en la ejecución en que se pulsó.
+    """
     _iniciar(perfil)
 
     for clave, cfg in CONTROLES.items():
@@ -128,8 +151,21 @@ def render(perfil):
             format=cfg["slider"], key=_k(clave), label_visibility="collapsed",
             on_change=_registrar, args=(clave,),
         )
+        real = st.session_state["_reales"][clave]
+        if real < cfg["min"] - EPS or real > cfg["max"] + EPS:
+            st.markdown(
+                f'<div class="palanca-aviso">Su valor ({cfg["fmt"](real)}) está fuera del rango de la encuesta '
+                f'({cfg["fmt"](cfg["min"])} a {cfg["fmt"](cfg["max"])}).</div>',
+                unsafe_allow_html=True,
+            )
 
-    st.button("↻ Restablecer", on_click=_restablecer)
+    guardar = False
+    if con_guardar:
+        c_rest, c_guardar = st.columns(2, gap="small")
+        c_rest.button("↻ Restablecer", on_click=_restablecer, use_container_width=True)
+        guardar = c_guardar.button("Guardar escenario", key="btn_guardar", use_container_width=True)
+    else:
+        st.button("↻ Restablecer", on_click=_restablecer)
 
     reales = st.session_state["_reales"]
     palancas_movidas = {
@@ -137,4 +173,6 @@ def render(perfil):
         for c in reales
         if abs(st.session_state[_k(c)] - reales[c]) > EPS
     }
+    if con_guardar:
+        return palancas_movidas, st.session_state["cambio"], guardar
     return palancas_movidas, st.session_state["cambio"]
