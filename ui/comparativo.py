@@ -8,7 +8,9 @@ from ui import procedencia
 from ui.controles import CONTROLES
 from ui.tema import ACENTO, AMBAR, GRIS, LINEA, TEXTO
 
-COL_ID = "empresa"
+# Columnas esperadas en data/empresas.parquet (ajusta aquí si se llaman distinto).
+# Las columnas de las palancas se llaman igual que sus claves: sal_dia_ini, aguinaldo_op, ...
+COL_ID = "empresa"   # nombre de la compañía, ej. "COMPAÑÍA 36" (la columna "id" del parquet es otra cosa)
 COL_Y = "rot_anual"
 
 EPS = 1e-9
@@ -79,32 +81,38 @@ def _fmt(valor):
 def render(datos):
     """Comparativo: empresa, grupo y resto en grande, con encabezado y aviso de grupo completado."""
     grupo = datos["grupo"]
-
+    # Con nada movido el fixture puede traer resto en null: no hay grupo contra el cual separarlo
     ind_resto = (datos.get("resto") or {}).get("indicadores") or {}
 
-
+    # Encabezado: cambia con cada movimiento porque n sale del fixture/motor
     _html(f'<div class="comp-encabezado">Comparando con {grupo["n"]} empresas reales</div>')
 
     if grupo.get("completado"):
         _html('<div class="comp-aviso">Grupo completado con empresas similares</div>')
 
     filas = ""
+    hay_mejor = False
     for clave, nombre in NOMBRES_INDICADORES.items():
         emp = datos["empresa"]["indicadores"][clave]
         gru = (grupo.get("indicadores") or {}).get(clave)
         res = ind_resto.get(clave)
-
-        clase_grupo = "cifra-grande-acento" if gru is not None and gru < emp else "cifra-grande"
+        # En los tres indicadores un valor menor es mejor
+        mejor = gru is not None and gru < emp
+        hay_mejor = hay_mejor or mejor
+        clase_grupo = "cifra-grande-acento" if mejor else "cifra-grande"
+        marca = " ▼" if mejor else ""  # el color no es la única pista
         filas += (
             f'<tr><td class="nombre">{nombre}</td>'
             f'<td><span class="cifra-grande">{_fmt(emp)}</span></td>'
-            f'<td><span class="{clase_grupo}">{_fmt(gru)}</span></td>'
+            f'<td><span class="{clase_grupo}">{_fmt(gru)}{marca}</span></td>'
             f'<td><span class="cifra-grande">{_fmt(res)}</span></td></tr>'
         )
     _html(
         '<table class="tabla"><tr><th></th><th>Empresa</th><th>Grupo</th><th>Resto</th></tr>'
         f"{filas}</table>"
     )
+    if hay_mejor:
+        _html('<div class="texto-gris">▼ el grupo pierde menos que su empresa</div>')
 
 
 def mostrar_figura(fig, nombre_archivo):
@@ -123,6 +131,26 @@ def _norm(texto):
     """Compara nombres sin importar mayúsculas, espacios ni acentos (COMPAÑÍA = Compania)."""
     descompuesto = unicodedata.normalize("NFD", str(texto).strip().upper())
     return "".join(c for c in descompuesto if unicodedata.category(c) != "Mn")
+
+
+def con_mi_empresa(empresas, perfil):
+    """Si la empresa del perfil no está en la tabla (caso «Mi empresa»), la agrega como una fila.
+
+    motor.comparar la busca por nombre exacto en la columna «empresa» y la excluye del universo;
+    solo necesita que exista (y su «banda» si se usa solo_tamano). Por eso la fila lleva únicamente
+    el nombre y se deja vacío lo demás: así no altera las medianas ni las desviaciones del motor.
+    Usa esta tabla solo para el motor; las gráficas usan la original.
+    """
+    if COL_ID not in empresas.columns:
+        return empresas
+    if perfil["id"] in set(empresas[COL_ID].astype(str)):
+        return empresas
+    fila = dict.fromkeys(empresas.columns, float("nan"))
+    fila[COL_ID] = perfil["id"]
+    if "id" in fila and "id" != COL_ID:
+        numericos = pd.to_numeric(empresas["id"], errors="coerce")
+        fila["id"] = int(numericos.max()) + 1 if numericos.notna().all() else perfil["id"]
+    return pd.concat([empresas, pd.DataFrame([fila])], ignore_index=True)
 
 
 def preparar_dispersion(datos, empresas, palancas=None):
@@ -229,47 +257,94 @@ def _base_layout(fig, altura):
         margin={"l": 10, "r": 10, "t": 10, "b": 10},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font={"color": TEXTO, "family": "Nunito, sans-serif", "size": 13},
+        font={"color": TEXTO, "family": "Nunito, sans-serif", "size": 16},
     )
 
 
-def distribucion_rotacion(datos, empresas, altura=330):
-    """B. Distribución de la rotación anual: grupo contra resto, con la empresa elegida."""
+X_BORDE = 1.07  # carril "+100%": quienes pierden más de 100% se muestran al borde
+
+
+def _apilar(valores, ancho=0.03, paso=0.17):
+    """Desplazamiento vertical para que los puntos cercanos no se encimen."""
+    colocados = []
+    resultado = [0.0] * len(valores)
+    for i in sorted(range(len(valores)), key=lambda j: valores[j]):
+        for nivel in (0, 1, -1, 2, -2, 3, -3):
+            if all(not (n == nivel and abs(valores[i] - px) < ancho) for px, n in colocados):
+                colocados.append((valores[i], nivel))
+                resultado[i] = nivel * paso
+                break
+    return resultado
+
+
+def distribucion_rotacion(datos, empresas, altura=None):
+    """Rotación anual por grupo: un punto por empresa, la mediana de cada grupo y la empresa hoy.
+
+    El eje va de 0% a 100%; lo que pierde más de 100% se dibuja como triángulo en el carril "+100%".
+    """
     grupos = preparar_dispersion(datos, empresas)
     e = grupos["elegida"]
-    rot_empresa = e[COL_Y].iloc[0]
+    rot_e = float(e[COL_Y].iloc[0])
     nombre_e = str(e[COL_ID].iloc[0])
+    filas = [(f"Grupo ({len(grupos['grupo'])})", ACENTO, grupos["grupo"])]
+    if not grupos["resto"].empty:
+        filas.append((f"Resto ({len(grupos['resto'])})", GRIS, grupos["resto"]))
+    n = len(filas)
+
+    def en_eje(v):
+        return X_BORDE if v > 1 else v
 
     fig = go.Figure()
-    capas = [
-        (f"Grupo<br>(n={len(grupos['grupo'])})", ACENTO, grupos["grupo"]),
-        (f"Resto<br>(n={len(grupos['resto'])})", GRIS, grupos["resto"]),
-    ]
-    for nombre, color, df in capas:
-        if df.empty:
-            continue
-        fig.add_trace(go.Box(
-            y=df[COL_Y], name=nombre, boxpoints="all", jitter=0.5, pointpos=0,
-            marker={"color": color, "size": 6}, line={"color": color}, fillcolor="rgba(0,0,0,0)",
-            hovertext=df[COL_ID], hoverinfo="text+y",
-        ))
-        fig.add_annotation(
-            x=nombre, y=df[COL_Y].median(), text=f"Mediana {df[COL_Y].median():.0%}",
-            showarrow=False, xanchor="left", xshift=34, yshift=14, font={"color": color},
-        )
+    hay_fuera = rot_e > 1
+    for i, (_, color, df) in enumerate(filas):
+        y0 = n - 1 - i
+        valores = [float(v) for v in df[COL_Y]]
+        nombres = [str(x) for x in df[COL_ID]]
+        desp = _apilar([en_eje(v) for v in valores])
+        for fuera, simbolo in ((False, "circle"), (True, "triangle-right")):
+            idx = [k for k, v in enumerate(valores) if (v > 1) == fuera]
+            if not idx:
+                continue
+            hay_fuera = hay_fuera or fuera
+            fig.add_trace(go.Scatter(
+                x=[en_eje(valores[k]) for k in idx], y=[y0 + desp[k] for k in idx], mode="markers",
+                hovertext=[f"{nombres[k]}: {valores[k]:.0%}" for k in idx], hoverinfo="text",
+                marker={"size": 13 if not fuera else 15, "symbol": simbolo, "color": color},
+            ))
+        med = float(df[COL_Y].median())
+        fig.add_shape(type="line", x0=en_eje(med), x1=en_eje(med), y0=y0 - 0.36, y1=y0 + 0.36,
+                      line={"color": color, "width": 5})
+        fig.add_annotation(x=en_eje(med), y=y0 + 0.36, text=f"{med:.0%}", showarrow=False,
+                           yshift=14, font={"color": TEXTO, "size": 18})
 
+    # Estado actual de la empresa: raya punteada con rombo arriba
+    xe = en_eje(rot_e)
+    y_top = n - 0.1
+    fig.add_shape(type="line", x0=xe, x1=xe, y0=-0.6, y1=y_top, line={"color": TEXTO, "width": 2, "dash": "dash"})
     fig.add_trace(go.Scatter(
-        x=[nombre_e], y=[rot_empresa], mode="markers", name=nombre_e,
-        hovertext=[nombre_e], hovertemplate="<b>%{hovertext}</b><br>Rotación anual: %{y:.1%}<extra></extra>",
-        marker={"size": 18, "symbol": "diamond", "color": TEXTO, "line": {"color": ACENTO, "width": 2}},
+        x=[xe], y=[y_top], mode="markers", hovertext=[f"{nombre_e}: {rot_e:.0%}"], hoverinfo="text",
+        marker={"size": 18, "symbol": "diamond", "color": TEXTO},
     ))
-    fig.add_hline(y=rot_empresa, line_dash="dot", line_color=TEXTO)
+    derecha = xe > 0.45  # con espacio a la derecha la etiqueta se corta
+    fig.add_annotation(x=xe, y=y_top, text=f"Empresa hoy: {rot_e:.0%}", showarrow=False,
+                       xanchor="right" if derecha else "left", xshift=-16 if derecha else 16,
+                       font={"color": TEXTO, "size": 18})
 
-    _base_layout(fig, altura)
-    fig.update_layout(showlegend=False)
-    fig.update_xaxes(tickangle=0)
-    fig.update_yaxes(title_text="Rotación anual", tickformat=".0%", gridcolor=LINEA, zeroline=False)
-    mostrar_figura(fig, "distribucion_rotacion")
+    valores_eje, textos_eje = [0, 0.25, 0.5, 0.75, 1.0], ["0%", "25%", "50%", "75%", "100%"]
+    if hay_fuera:
+        valores_eje.append(X_BORDE)
+        textos_eje.append("+100%")
+        fig.add_shape(type="line", x0=X_BORDE - 0.035, x1=X_BORDE - 0.035, y0=-0.6, y1=n - 0.3,
+                      line={"color": LINEA, "width": 1, "dash": "dot"})
+
+    _base_layout(fig, altura or 150 + 110 * n)
+    fig.update_layout(showlegend=False, margin={"l": 10, "r": 10, "t": 10, "b": 10})
+    fig.update_xaxes(range=[-0.03, X_BORDE + 0.05 if hay_fuera else 1.03], tickvals=valores_eje,
+                     ticktext=textos_eje, gridcolor=LINEA, zeroline=False, tickfont={"size": 15}, tickangle=0)
+    fig.update_yaxes(range=[-0.7, n + 0.25], tickvals=[n - 1 - i for i in range(n)],
+                     ticktext=[f[0] for f in filas], showgrid=False, zeroline=False,
+                     fixedrange=True, tickfont={"size": 18})
+    mostrar_figura(fig, "rotacion_por_grupo")
 
 
 def palancas_grupo(datos, empresas, niveles, altura=330):
@@ -310,7 +385,7 @@ def palancas_grupo(datos, empresas, niveles, altura=330):
 
     fig = go.Figure()
 
-    if hay_resto:
+    if hay_resto:  # línea que une grupo y resto en cada palanca: su largo es lo que los separa
         lx, ly = [], []
         for c, n in zip(claves, nombres):
             lx += [pos(c, med_grupo[c]), pos(c, med_resto[c]), None]
@@ -320,9 +395,10 @@ def palancas_grupo(datos, empresas, niveles, altura=330):
 
     series = [puntos("Grupo (mediana)", med_grupo, ACENTO)]
     if hay_resto:
-        series.append(puntos("Resto (mediana)", med_resto, GRIS))
+        series.append(puntos("Resto (mediana)", med_resto, GRIS, "square"))
     series.append(puntos("Empresa hoy", reales, TEXTO, "diamond", 17, ACENTO, con_dato))
     movidas = {c: v for c, v in niveles.items() if c in con_dato and abs(v - reales[c]) > EPS}
+    # Escenarios fuera de lo observado: el percentil se queda en 0% o 100%, así que se avisa
     fuera = [c for c in movidas if movidas[c] < todas[c].min() - EPS or movidas[c] > todas[c].max() + EPS]
     if movidas:  # el escenario es un valor editable: color de supuesto
         xs = [pos(c, movidas[c]) for c in movidas]
