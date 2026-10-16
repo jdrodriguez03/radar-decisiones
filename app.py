@@ -1,6 +1,8 @@
 """Radar de Decisiones: selector + palancas, comparativo y explicación, conectados al motor real."""
 
+import copy
 import time
+from datetime import datetime
 from pathlib import Path
 
 import streamlit as st
@@ -11,16 +13,11 @@ from ui.tema import AMBAR, GRIS, aplicar_estilos
 
 RAIZ = Path(__file__).parent
 RUTA_EMPRESAS = RAIZ / "data" / "processed" / "empresas.parquet"
-MOSTRAR_TIEMPO = True
+MOSTRAR_TIEMPO = True  # ponlo en False antes de la demo
 LIMITE_MS = 300
 
 st.set_page_config(layout="wide")
 aplicar_estilos()
-
-
-def _firma(palancas):
-    """Identifica una combinación de palancas movidas."""
-    return tuple(sorted((k, round(v, 6)) for k, v in palancas.items()))
 
 
 def _alternar_palanca():
@@ -31,20 +28,33 @@ def _titulo(texto):
     st.markdown(f'<div class="titulo-col">{texto}</div>', unsafe_allow_html=True)
 
 
+def _guardar_escenario(estado, explicado):
+    """Captura lo que hay en pantalla: el estado completo y, si está vigente, su explicación."""
+    vigente = explicado is not None and not explicacion.falta_explicar(estado, explicado)
+    guardados = st.session_state.setdefault("escenarios_guardados", [])
+    guardados.append({
+        "hora": datetime.now().isoformat(timespec="seconds"),
+        "estado": copy.deepcopy(estado),
+        "explicacion": (explicado.get("explicacion") or {}).get("texto") if vigente else None,
+    })
+    st.toast(f"Escenario guardado ({len(guardados)})")
+
+
 @st.fragment
 def pantalla(empresas):
     """Todo vive en un fragmento: al mover una palanca no se recarga la página completa."""
     st.markdown('<div class="titulo-app">Radar de Decisiones</div>', unsafe_allow_html=True)
     subtitulo = st.empty()
-    col_izq, col_centro, col_der = st.columns([1.3, 2.2, 1.5], gap="large")
+    col_izq, col_centro, col_der = st.columns([1.15, 2.2, 1.65], gap="large")
 
-    # Columna izquierda: selector arriba, controles abajo
+    # Izquierda: selector arriba; controles con Restablecer y Guardar abajo
     with col_izq:
         _titulo("Palancas")
         perfil = selector.render(empresas)
         if perfil is None:  # "Mi empresa" aún no se envía; el selector ya avisa qué falta
             return
-        palancas_movidas, cambio = controles.render(perfil)
+        palancas_movidas, cambio, guardar = controles.render(perfil, con_guardar=True)
+        nota_guardados = st.empty()
 
     n = perfil.get("plantilla_op")
     subtitulo.markdown(
@@ -52,37 +62,37 @@ def pantalla(empresas):
         unsafe_allow_html=True,
     )
 
-    # Columna central: se arman los espacios en orden y se llenan cuando hay estado.
+    # Centro: se arman los espacios en orden y se llenan cuando hay estado.
+    # Los supuestos (⚙) se leen antes porque el motor los necesita; van junto a la brecha.
     with col_centro:
         _titulo("Comparativo")
-        zona_graficas = st.container()
+        zona_tabla = st.container()
         zona_pesos = st.container()
         zona_extra = st.container()
     with zona_pesos:
-        c_medida, c_brecha, c_ajustes = st.columns([1, 1, 0.25], vertical_alignment="center")
+        c_medida, c_brecha, c_ajustes = st.columns([1, 1, 0.4], vertical_alignment="center")
         with c_ajustes:
             ajustes = supuestos.render()
 
+    empresas_motor = comparativo.con_mi_empresa(empresas, perfil)  # el motor busca la empresa por nombre
     try:
-        estado = calcular_estado(empresas, perfil, palancas_movidas, cambio, ajustes)
+        estado = calcular_estado(empresas_motor, perfil, palancas_movidas, cambio, ajustes)
     except ValueError as error:
         st.error(str(error))
         return
 
-    niveles = {p: palancas_movidas.get(p, v) for p, v in perfil["palancas"].items()}
-    with zona_graficas:
+    explicado = st.session_state.get("estado_explicado")  # última combinación explicada
+    if guardar:
+        _guardar_escenario(estado, explicado)
+    total = len(st.session_state.get("escenarios_guardados", []))
+    if total:
+        nota_guardados.markdown(f'<div class="texto-gris">{total} escenario(s) guardado(s)</div>', unsafe_allow_html=True)
+
+    with zona_tabla:
         comparativo.render(estado)
-        g_b, g_c = st.columns(2)
-        with g_b:
-            st.markdown('<div class="grafica-titulo">Rotación anual: grupo y resto</div>', unsafe_allow_html=True)
-            comparativo.distribucion_rotacion(estado, empresas)
-        with g_c:
-            st.markdown('<div class="grafica-titulo">Qué hace distinto el grupo</div>', unsafe_allow_html=True)
-            comparativo.palancas_grupo(estado, empresas, niveles)
-        comparativo.en_comun(estado)
     with zona_pesos:
         comparativo.cifras_pesos(estado, (c_medida, c_brecha))
-    with zona_extra:
+    with zona_extra:  # herramienta extra: solo se arma cuando se pide
         ver = st.session_state.get("_ver_palanca", False)
         st.button(
             "Ocultar gráfica por palanca" if ver else "Ver gráfica por palanca",
@@ -93,22 +103,24 @@ def pantalla(empresas):
             valor_x = palancas_movidas.get(palanca_x, perfil["palancas"].get(palanca_x))
             comparativo.dispersion(estado, empresas, palanca_x, valor_x)
 
-    # Columna derecha: Explicar solo se llama al pulsarlo
+    # Derecha: Explicar, explicación y, debajo, la rotación por grupo
     with col_der:
         _titulo("Explicación")
-        explicado = st.session_state.get("estado_explicado")
-        misma_empresa = explicado is not None and explicado["empresa"]["id"] == estado["empresa"]["id"]
-        anterior = explicado if misma_empresa else None  # la última combinación explicada, no el último movimiento
         pulsado = st.button(
             "Explicar", type="primary", key="btn_explicar", use_container_width=True,
             disabled=not palancas_movidas, help="Mueve al menos una palanca y explica el escenario cuando esté listo.",
         )
         contenedor = st.container()
+        with st.container():  # primero la gráfica: no espera a que la IA termine de escribir
+            comparativo.distribucion_rotacion(estado, empresas)
         if pulsado:
-            explicacion.render(contenedor, estado, anterior)
+            explicacion.render(contenedor, estado, explicado)
             st.session_state["estado_explicado"] = estado
-        elif misma_empresa and _firma(explicado["palancas_movidas"]) != _firma(palancas_movidas):
-            explicacion.aviso_pendiente(contenedor)
+        elif explicado is not None:
+            if explicacion.falta_explicar(estado, explicado):
+                explicacion.aviso_pendiente(contenedor)  # en lugar del texto viejo
+            else:
+                explicacion.mostrar(contenedor, explicado)  # sin llamar a la IA
 
     if MOSTRAR_TIEMPO:
         t_click = st.session_state.pop("_t_click", None)
