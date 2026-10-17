@@ -18,7 +18,7 @@ def _num(valor):
     return f"{float(valor):g}"
 
 
-def _firma(estado):
+def firma(estado):
     """'COMPAÑIA 36|aguinaldo_op=20,prima_vac_op=0.5|15000': empresa, palancas movidas y costo por baja."""
     empresa = estado["empresa"]["id"]
     movidas = estado.get("palancas_movidas") or {}
@@ -35,8 +35,8 @@ def llave(estado, anterior=None):
     """
     previo = anterior_util(estado, anterior)
     if previo is None:
-        return _firma(estado)
-    return f"{_firma(estado)} <- {_firma(previo)}"
+        return firma(estado)
+    return f"{firma(estado)} <- {firma(previo)}"
 
 
 def cargar(ruta=None):

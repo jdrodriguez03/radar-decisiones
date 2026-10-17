@@ -172,6 +172,14 @@ def test_cifra_inventada_nunca_llega_a_la_pantalla():
     assert estado["explicacion"] == {"fuente": "plantilla", "texto": plantilla(cargar_estado())}
 
 
+def test_palabra_de_causa_nunca_llega_a_la_pantalla():
+    estado = cargar_estado()
+    cliente = ClienteFalso(trozos=["Subir el aguinaldo ", "reducirá su pérdida al 22%."])  # cifras bien, causa no
+    texto_en_pantalla = "".join(explicar(estado, None, cliente=cliente, limite=1))
+    assert "reducirá" not in texto_en_pantalla
+    assert estado["explicacion"]["fuente"] == "plantilla"
+
+
 def test_texto_con_cifras_reales_se_queda():
     estado = cargar_estado()
     cliente = ClienteFalso(trozos=["Las 22 empresas ", "pierden 22% al año; las demás, 53%."])
@@ -209,3 +217,19 @@ def test_el_efecto_de_escritura_respeta_la_pausa():
     "".join(explicar(cargar_estado(), None, cliente=cliente, limite=1, pausa=0.05))
     assert time.perf_counter() - inicio >= 0.2  # 5 palabras con 0.05 s entre cada una
 
+
+
+def test_no_manda_temperatura():
+    # La librería anthropic 1.11 ya no acepta temperature: mandarla lanzaba TypeError
+    # y TODA explicación caía a la plantilla (corrida del 14 de octubre).
+    cliente = ClienteFalso(trozos=["Las 22 empresas."])
+    "".join(explicar(cargar_estado(), None, cliente=cliente, limite=1))
+    assert "temperature" not in cliente.pedido
+
+
+def test_numero_pegado_se_arregla_antes_de_mostrar():
+    estado = cargar_estado()
+    cliente = ClienteFalso(trozos=["Las 22 empresas ", "pierden 22% al año; equivale a $6.3millones."])
+    texto = "".join(explicar(estado, None, cliente=cliente, limite=1))
+    assert "$6.3 millones" in texto
+    assert estado["explicacion"]["fuente"] == "llm"

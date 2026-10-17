@@ -1,9 +1,13 @@
-
 """Corre las 20 combinaciones y escribe docs/resultados_combinaciones.md. Dueño: Juanes.
 
 Para qué sirve: antes de la demo queremos saber qué pasa en las 20 jugadas más
 probables (las del guion, cada palanca sola, extremos y empresas de respaldo).
 Así sabemos de antemano si alguna da un resultado raro que un juez pueda provocar.
+
+Día 7 (bloque 4): el script ya no arma el resultado a mano con comparar() y pesos.py.
+Ahora le pide todo al motor real con una sola llamada, motor.api.calcular_estado(),
+que devuelve el contrato JSON completo: exactamente lo que verá la pantalla y lo que
+leerá la IA. Así, lo que probamos aquí es lo mismo que pasará en la demo.
 
 Cómo se corre (desde la raíz del repositorio):
     python scripts/correr_combinaciones.py
@@ -23,8 +27,7 @@ if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
 
 from config import MIN_GRUPO, PALANCAS, RUTA_SUPUESTOS
-from motor.comparar import comparar
-from motor.pesos import costo_brecha, costo_medida
+from motor.api import calcular_estado
 
 RUTA_CASOS = RAIZ / "scripts" / "combinaciones.yaml"
 RUTA_SALIDA = RAIZ / "docs" / "resultados_combinaciones.md"
@@ -64,7 +67,7 @@ def cargar_supuestos(ruta=RUTA_SUPUESTOS):
 
 
 # ---------------------------------------------------------------------------
-# 2. Datos de la empresa elegida
+# 2. Del DataFrame al perfil que pide calcular_estado
 # ---------------------------------------------------------------------------
 def fila_empresa(empresas, empresa_id):
     """Devuelve la fila de una empresa, tenga el DataFrame la empresa como índice o columna."""
@@ -75,73 +78,106 @@ def fila_empresa(empresas, empresa_id):
         return filas.iloc[0]
     return empresas.loc[empresa_id]
 
+import math
 
-def perfil_de(fila):
-    """Arma el perfil que necesita pesos.py: plantilla y valores actuales de las palancas."""
+
+def _o_none(valor):
+    """Convierte NaN en None (el contrato usa None para 'sin dato')."""
+    if valor is None:
+        return None
+    try:
+        numero = float(valor)
+    except (TypeError, ValueError):  # pd.NA o un texto no se pueden pasar a float
+        return None
+    return None if math.isnan(numero) else numero
+
+
+def perfil_de_empresa(empresas, empresa_id):
+    """Perfil con la misma forma que devuelve ui/selector.py: id, plantilla, palancas e indicadores.
+
+    Los nombres de los indicadores son los del contrato (rot_temprana, ausentismo),
+    no los de la base (bajas_menos3m, aus_inj_op).
+    """
+    fila = fila_empresa(empresas, empresa_id)
     return {
-        "plantilla_op": float(fila["plantilla_op"]),
-        "palancas": {palanca: float(fila[palanca]) for palanca in PALANCAS},
+        "id": empresa_id,
+        "plantilla_op": int(fila["plantilla_op"]),
+        "banda": fila.get("banda"),
+        "palancas": {p: float(fila[p]) for p in PALANCAS},
+        "indicadores": {
+            "rot_anual": float(fila["rot_anual"]),
+            "rot_temprana": _o_none(fila.get("bajas_menos3m")),
+            "ausentismo": _o_none(fila.get("aus_inj_op")),
+        },
     }
 
 
-# ---------------------------------------------------------------------------
-# 3. Leer la salida del motor sin depender de su forma exacta
-# ---------------------------------------------------------------------------
-def rotacion(resumen):
-    """Rotación anual (mediana) de un resumen del motor.
+def cambio_de(perfil, palancas_movidas):
+    """El 'cambio' es la ÚLTIMA palanca movida: de su valor real al nuevo.
 
-    Acepta las dos formas posibles: {"rot_anual": x} o {"indicadores": {"rot_anual": x}}.
+    En el YAML el orden importa: {aguinaldo_op: 20, prima_vac_op: 0.5} significa
+    que primero se movió el aguinaldo y después la prima, así que el cambio es la prima.
+    Sin palancas movidas (estado inicial) no hay cambio: None.
     """
-    if "indicadores" in resumen:
-        return resumen["indicadores"].get("rot_anual")
-    return resumen.get("rot_anual")
+    if not palancas_movidas:
+        return None
+    palanca, valor = list(palancas_movidas.items())[-1]
+    return {"palanca": palanca, "de": perfil["palancas"][palanca], "a": valor}
 
 
-def etiqueta_senal(senal):
-    """La señal puede venir como texto ("clara") o como dict {"etiqueta": ..., "p": ...}."""
-    return senal["etiqueta"] if isinstance(senal, dict) else senal
+def estado_de_caso(empresas, caso, supuestos):
+    """Contrato JSON completo de un caso, tal cual lo entrega el motor real.
 
-
-# ---------------------------------------------------------------------------
-# 4. Correr un caso
-# ---------------------------------------------------------------------------
-def correr_caso(empresas, caso, supuestos):
-    """Llama al motor y a los pesos para un caso y devuelve una fila con los resultados."""
-    fila = fila_empresa(empresas, caso["empresa"])
-    perfil = perfil_de(fila)
-    movidas = caso["palancas"]
-
-    resultado = comparar(empresas, caso["empresa"], movidas)
-    grupo, resto = resultado["grupo"], resultado["resto"]
-    rot_empresa = float(fila["rot_anual"])
-    rot_grupo, rot_resto = rotacion(grupo), rotacion(resto)
-
-    medida = costo_medida(perfil, movidas, supuestos)
-    brecha = (
-        costo_brecha(rot_empresa, rot_grupo, perfil["plantilla_op"], supuestos["costo_por_baja"])
-        if rot_grupo is not None
-        else 0.0
+    También le sirve a Julian para generar los estados con los que prueba el prompt.
+    """
+    perfil = perfil_de_empresa(empresas, caso["empresa"])
+    movidas = dict(caso["palancas"])
+    return calcular_estado(
+        empresas,
+        perfil,
+        movidas,
+        cambio_de(perfil, movidas),
+        supuestos,
+        solo_tamano=bool(caso.get("solo_tamano", False)),
     )
 
+
+# ---------------------------------------------------------------------------
+# 3. Leer el contrato
+# ---------------------------------------------------------------------------
+def rotacion(bloque):
+    """Rotación anual (mediana) de 'grupo' o 'resto' del contrato; None si no hay indicadores."""
+    indicadores = bloque.get("indicadores") or {}
+    return indicadores.get("rot_anual")
+
+
+def fila_de_estado(caso, estado):
+    """Resume un contrato en la fila de la tabla (solo lo que necesitamos revisar)."""
     salida = {
         "id": caso["id"],
         "tipo": caso.get("tipo", ""),
         "descripcion": caso.get("descripcion", ""),
         "empresa": caso["empresa"],
-        "palancas": movidas,
-        "n_grupo": grupo["n"],
-        "n_resto": resto["n"],
-        "rot_empresa": rot_empresa,
-        "rot_grupo": rot_grupo,
-        "rot_resto": rot_resto,
-        "senal": etiqueta_senal(resultado["senal"]),
-        "completado": bool(resultado.get("completado", False)),
-        "costo_medida": medida,
-        "costo_brecha": brecha,
+        "palancas": caso["palancas"],
+        "n_grupo": estado["grupo"]["n"],
+        "n_resto": estado["resto"]["n"],
+        "rot_empresa": estado["empresa"]["indicadores"]["rot_anual"],
+        "rot_grupo": rotacion(estado["grupo"]),
+        "rot_resto": rotacion(estado["resto"]),
+        "senal": estado["senal"]["etiqueta"],
+        "p": estado["senal"].get("p"),
+        "completado": bool(estado["grupo"]["completado"]),
+        "costo_medida": estado["pesos"]["costo_medida_anual"],
+        "costo_brecha": estado["pesos"]["costo_brecha_anual"],
     }
     salida["alertas"] = alertas(salida)
     salida["revision_guion"] = revisar_esperado(salida, caso.get("esperado"))
     return salida
+
+
+def correr_caso(empresas, caso, supuestos):
+    """Llama al motor real para un caso y devuelve su fila de resultados."""
+    return fila_de_estado(caso, estado_de_caso(empresas, caso, supuestos))
 
 
 def alertas(fila):
@@ -168,13 +204,14 @@ def revisar_esperado(fila, esperado):
     if fila["n_grupo"] != esperado["n_grupo"]:
         fallas.append(f"n grupo {fila['n_grupo']} ≠ {esperado['n_grupo']}")
     for clave in ("rot_grupo", "rot_resto"):
-        if round(fila[clave], 2) != esperado[clave]:
-            fallas.append(f"{clave} {fila[clave]:.3f} ≠ {esperado[clave]}")
+        valor = fila[clave]
+        if valor is None or round(valor, 2) != esperado[clave]:
+            fallas.append(f"{clave} {valor} ≠ {esperado[clave]}")
     return "coincide" if not fallas else "NO coincide: " + "; ".join(fallas)
 
 
 # ---------------------------------------------------------------------------
-# 5. Formato y archivo de salida
+# 4. Formato y archivo de salida
 # ---------------------------------------------------------------------------
 def pct(valor):
     return "—" if valor is None else f"{valor:.0%}"
@@ -204,30 +241,32 @@ def a_markdown(filas, supuestos):
         "# Resultados de las 20 combinaciones",
         "",
         (
-            f"Generado por scripts/correr_combinaciones.py el {hoy}. "
-            f"Costo por baja: ${supuestos['costo_por_baja']:,}; "
+            f"Generado por scripts/correr_combinaciones.py el {hoy} con el motor real "
+            f"(motor.api.calcular_estado). Costo por baja: ${supuestos['costo_por_baja']:,}; "
             f"costo mensual por ruta: ${supuestos['costo_ruta_mensual']:,}."
         ),
         "",
         (
             f"**Resumen:** {len(filas)} casos corridos, {len(con_alerta)} con alerta, "
-            f"{sum(f['completado'] for f in filas)} con grupo completado."
+            f"{sum(f['completado'] for f in filas)} con grupo completado. "
+            "Las anomalías se explican en docs/anomalias.md."
         ),
         "",
         "## Tabla",
         "",
         (
             "| Caso | Empresa | Palancas movidas | n grupo | n resto | Rot. empresa "
-            "| Rot. grupo | Rot. resto | Señal | Completado | Costo medida "
+            "| Rot. grupo | Rot. resto | Señal (p) | Completado | Costo medida "
             "| Costo brecha | Alertas |"
         ),
         "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for f in filas:
+        p = "" if f["p"] is None else f" ({f['p']:.3f})"
         lineas.append(
             f"| {f['id']} | {f['empresa']} | {texto_palancas(f['palancas'])} "
             f"| {f['n_grupo']} | {f['n_resto']} | {pct(f['rot_empresa'])} "
-            f"| {pct(f['rot_grupo'])} | {pct(f['rot_resto'])} | {f['senal']} "
+            f"| {pct(f['rot_grupo'])} | {pct(f['rot_resto'])} | {f['senal']}{p} "
             f"| {'sí' if f['completado'] else 'no'} | {pesos(f['costo_medida'])} "
             f"| {pesos(f['costo_brecha'])} | {'; '.join(f['alertas']) or '—'} |"
         )
@@ -265,6 +304,9 @@ def main(empresas=None):
     RUTA_SALIDA.write_text(a_markdown(filas, supuestos), encoding="utf-8")
     print(f"Listo: {len(filas)} casos -> {RUTA_SALIDA}")
     print(f"Con alerta: {sum(bool(f['alertas']) for f in filas)}")
+    for f in filas:
+        if f["revision_guion"] and f["revision_guion"] != "coincide":
+            print(f"  ¡Ojo! {f['id']}: {f['revision_guion']}")
 
 
 if __name__ == "__main__":

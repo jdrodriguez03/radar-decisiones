@@ -11,7 +11,8 @@ import anthropic
 import config
 from ia.cache import buscar
 from ia.plantilla import plantilla
-from ia.prompts import PROMPT_SISTEMA, armar_mensaje
+from ia.prompts import PROMPT_SISTEMA, armar_mensaje, pulir
+from ia.reglas import fallas_graves
 from ia.validador import es_valido
 
 PAUSA_MAX_SEG = 10  # máximo entre un trozo y el siguiente, ya empezado el texto
@@ -140,7 +141,8 @@ def _texto_aprobado(estado, anterior, cliente, limite, limite_total, latido, mod
     """El texto que se va a mostrar y de dónde salió: ("cache" | "llm" | "plantilla", texto).
 
     1. Caché: si el estado ya se explicó antes (y el texto sigue pasando el validador).
-    2. IA en vivo: solo si responde a tiempo y todas sus cifras están en los datos.
+    2. IA en vivo: solo si responde a tiempo, todas sus cifras están en los datos y no
+       insinúa causa ni olvida advertir una señal no concluyente (ia/reglas.py).
     3. Plantilla: en cualquier otro caso (sin internet, lenta, error o cifra inventada).
     """
     guardado = buscar(estado, anterior, cache)
@@ -150,8 +152,11 @@ def _texto_aprobado(estado, anterior, cliente, limite, limite_total, latido, mod
         texto = _pedir_a_la_ia(estado, anterior, cliente, limite, limite_total, latido, modelo)
         if not texto:
             raise ValueError("la IA devolvió un texto vacío")
+        texto = pulir(texto, estado)  # espacios que la IA se comió, antes de validar y mostrar
         if not es_valido(texto, estado, anterior):
             raise ValueError("la IA escribió una cifra que no está en los datos")
+        if fallas_graves(texto, estado):
+            raise ValueError("la IA insinuó causa o no advirtió que la señal no es concluyente")
         return "llm", texto
     except Exception:  # noqa: BLE001  cualquier fallo cae a la plantilla
         return "plantilla", _plantilla_segura(estado)

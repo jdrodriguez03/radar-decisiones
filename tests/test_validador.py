@@ -156,3 +156,20 @@ def test_el_redondeo_hacia_abajo_no_se_confunde_con_decimales_raros():
     estado = cargar()
     estado["grupo"]["indicadores"]["rot_anual"] = 0.29
     assert cifras_inventadas("Esas empresas pierden 29%; ninguna 28%.", estado) == [28.0]
+
+
+def test_costo_negativo_es_un_ahorro_en_positivo():
+    # E5: bajar los vales de 9% a 6% "cuesta" -5,095,595; la IA escribe "ahorraría $5.1 millones".
+    estado = json.loads((RUTA_FIXTURES / "01_aguinaldo.json").read_text(encoding="utf-8"))
+    estado["pesos"]["costo_medida_anual"] = -5095595
+    assert es_valido("La medida le ahorraría $5.1 millones al año.", estado)
+    assert not es_valido("La medida le ahorraría $5.4 millones al año.", estado)
+
+
+def test_montos_de_menos_de_un_millon_en_miles():
+    from ia.validador import es_valido
+
+    estado = json.loads((RUTA_FIXTURES / "01_aguinaldo.json").read_text(encoding="utf-8"))
+    estado["pesos"]["costo_medida_anual"] = 250079
+    assert es_valido("La medida costaría $250 mil pesos al año.", estado)
+    assert not es_valido("La medida costaría $260 mil pesos al año.", estado)
