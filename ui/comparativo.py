@@ -261,7 +261,7 @@ def _base_layout(fig, altura):
     )
 
 
-X_BORDE = 1.07  # carril "+100%": quienes pierden más de 100% se muestran al borde
+X_BORDE = 1.14  # carril "+100%": quienes pierden más de 100% se muestran al borde
 
 
 def _apilar(valores, ancho=0.03, paso=0.17):
@@ -334,12 +334,12 @@ def distribucion_rotacion(datos, empresas, altura=None):
     if hay_fuera:
         valores_eje.append(X_BORDE)
         textos_eje.append("+100%")
-        fig.add_shape(type="line", x0=X_BORDE - 0.035, x1=X_BORDE - 0.035, y0=-0.6, y1=n - 0.3,
+        fig.add_shape(type="line", x0=X_BORDE - 0.07, x1=X_BORDE - 0.07, y0=-0.6, y1=n - 0.3,
                       line={"color": LINEA, "width": 1, "dash": "dot"})
 
     _base_layout(fig, altura or 150 + 110 * n)
     fig.update_layout(showlegend=False, margin={"l": 10, "r": 10, "t": 10, "b": 10})
-    fig.update_xaxes(range=[-0.03, X_BORDE + 0.05 if hay_fuera else 1.03], tickvals=valores_eje,
+    fig.update_xaxes(range=[-0.03, X_BORDE + 0.07 if hay_fuera else 1.03], tickvals=valores_eje,
                      ticktext=textos_eje, gridcolor=LINEA, zeroline=False, tickfont={"size": 15}, tickangle=0)
     fig.update_yaxes(range=[-0.7, n + 0.25], tickvals=[n - 1 - i for i in range(n)],
                      ticktext=[f[0] for f in filas], showgrid=False, zeroline=False,
