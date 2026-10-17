@@ -56,8 +56,9 @@
   },
   "COMPAÑIA 36|aguinaldo_op=20,prima_vac_op=0.5,sal_dia_ini=350|30000 <- COMPAÑIA 36|aguinaldo_op=20,prima_vac_op=0.5,sal_dia_ini=350|15000": {
     "creado": "2026-10-17",
+    "editado_a_mano": "2026-10-17",
     "modelo": "claude-sonnet-5-5",
-    "texto": "Con el costo por baja de $30,000, ahora con el aguinaldo de 20 días, la prima vacacional de 50% y el salario inicial de $350, las 5 empresas que ya lo aplican pierden 12% de su plantilla al año y las otras 33, 38%. Para su empresa, esa diferencia en bajas equivale a $17.1 millones de pesos al año, contra $17.6 millones de pesos que costaría la medida. Con estos datos la señal no es concluyente: tómelo como referencia, no como conclusión."
+    "texto": "Con el costo por baja en $30,000, la diferencia en bajas equivale a $17.1 millones al año, antes $8.5 millones, contra $17.6 millones que costaría la medida. Las 5 empresas que ya dan aguinaldo de 20 días, prima vacacional de 50% y salario inicial de $350 pierden 12% de su plantilla al año; las 33 restantes, 38%. Con estos datos la señal no es concluyente: tómelo como referencia, no como conclusión."
   },
   "COMPAÑIA 36|aguinaldo_op=20,prima_vac_op=0.5|15000": {
     "creado": "2026-10-17",
