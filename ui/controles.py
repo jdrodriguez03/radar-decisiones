@@ -8,6 +8,9 @@ DEPURAR = False  # True: imprime en la terminal lo que hacen los botones (para b
 
 def _log(texto):
     if DEPURAR:
+        eventos = st.session_state.setdefault("_eventos", [])
+        eventos.append(texto)
+        del eventos[:-8]  # solo los últimos 8
         print(f"[controles] {texto}", flush=True)
 
 
@@ -142,15 +145,14 @@ def render(perfil, con_guardar=False):
     zona_botones = st.container()
     guardar = False
     with zona_botones:
+        # Misma estructura con o sin «Guardar»: en las pruebas, el botón suelto fallaba y este esquema no
+        c_rest, c_guardar = st.columns(2, gap="small")
+        reiniciar = c_rest.button("↻ Restablecer", key="btn_restablecer", use_container_width=True)
         if con_guardar:
-            c_rest, c_guardar = st.columns(2, gap="small")
-            reiniciar = c_rest.button("↻ Restablecer", key="btn_restablecer", use_container_width=True)
             guardar = c_guardar.button("Guardar escenario", key="btn_guardar", use_container_width=True)
-        else:
-            reiniciar = st.button("↻ Restablecer", key="btn_restablecer")
     if reiniciar:
         _restablecer()
-    _log("render: " + str({k: v for k, v in st.session_state.items() if k.startswith("valor_")}))
+    _log(f"render: reiniciar={reiniciar} guardar={guardar}")
 
     with zona_filas:
         for clave, cfg in CONTROLES.items():
@@ -167,10 +169,8 @@ def render(perfil, con_guardar=False):
                 unsafe_allow_html=True,
             )
             c_menos, c_mas, c_slider = st.columns([1.3, 1.3, 5], gap="small", vertical_alignment="center")
-            c_menos.button("−", key=f"menos_{clave}", on_click=_paso, args=(clave, -1),
-                           help=f"Bajar {cfg['paso']:g}", use_container_width=True)
-            c_mas.button("+", key=f"mas_{clave}", on_click=_paso, args=(clave, 1),
-                         help=f"Subir {cfg['paso']:g}", use_container_width=True)
+            c_menos.button("−", key=f"menos_{clave}", on_click=_paso, args=(clave, -1), use_container_width=True)
+            c_mas.button("+", key=f"mas_{clave}", on_click=_paso, args=(clave, 1), use_container_width=True)
             c_slider.slider(
                 cfg["nombre"], min_value=lo, max_value=hi, step=cfg["paso"],
                 format=cfg["slider"], key=_k(clave), label_visibility="collapsed",
@@ -183,6 +183,10 @@ def render(perfil, con_guardar=False):
                     f'({cfg["fmt"](cfg["min"])} a {cfg["fmt"](cfg["max"])}).</div>',
                     unsafe_allow_html=True,
                 )
+
+    if DEPURAR:  # panel de ayuda: muestra en pantalla qué ejecuciones y clics llegaron
+        st.session_state["_corridas"] = st.session_state.get("_corridas", 0) + 1
+        st.code(f"ejecución {st.session_state['_corridas']}\n" + "\n".join(st.session_state.get("_eventos", [])))
 
     reales = st.session_state["_reales"]
     palancas_movidas = {
