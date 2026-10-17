@@ -165,3 +165,13 @@ def test_resto_muy_chico_lleva_nota():
     estado["resto"]["n"] = 2
     assert _para_ia(estado)["nota_resto"] == 'Las demás son solo 2 empresas: escribe "las otras 2 empresas".'
     assert "nota_resto" not in _para_ia(cargar("01_aguinaldo"))  # 16 empresas: no hace falta
+
+
+def test_el_cambio_del_costo_por_baja_se_nombra():
+    # 3:45 del guion: el juez abre ⚙ y sube el costo por baja; ninguna palanca cambia
+    antes = cargar("03_salario")
+    ahora = cargar("03_salario")
+    ahora["pesos"]["supuestos"]["costo_por_baja"] = 30000
+    mensaje = armar_mensaje(ahora, antes)
+    assert "costo por baja (un supuesto del directivo) pasó de $15,000 a $30,000" in mensaje
+    assert "ninguna palanca cambió" not in mensaje
