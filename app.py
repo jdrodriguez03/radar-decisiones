@@ -15,6 +15,7 @@ RAIZ = Path(__file__).parent
 RUTA_EMPRESAS = RAIZ / "data" / "processed" / "empresas.parquet"
 MOSTRAR_TIEMPO = True  # ponlo en False antes de la demo
 LIMITE_MS = 300
+USAR_FRAGMENTO = False  # prueba: ponlo en False si algún botón no responde (se vuelve a correr toda la página)
 
 st.set_page_config(layout="wide")
 aplicar_estilos()
@@ -40,8 +41,7 @@ def _guardar_escenario(estado, explicado):
     st.toast(f"Escenario guardado ({len(guardados)})")
 
 
-@st.fragment
-def pantalla(empresas):
+def _pantalla(empresas):
     """Todo vive en un fragmento: al mover una palanca no se recarga la página completa."""
     st.markdown('<div class="titulo-app">Radar de Decisiones</div>', unsafe_allow_html=True)
     subtitulo = st.empty()
@@ -136,4 +136,5 @@ def pantalla(empresas):
             )
 
 
+pantalla = st.fragment(_pantalla) if USAR_FRAGMENTO else _pantalla
 pantalla(comparativo.cargar_empresas(RUTA_EMPRESAS))
