@@ -97,7 +97,7 @@ def render(datos):
         gru = (grupo.get("indicadores") or {}).get(clave)
         res = ind_resto.get(clave)
         # En los tres indicadores un valor menor es mejor
-        mejor = gru is not None and gru < emp
+        mejor = gru is not None and emp is not None and gru < emp  # «Mi empresa» no captura todos los indicadores
         hay_mejor = hay_mejor or mejor
         clase_grupo = "cifra-grande-acento" if mejor else "cifra-grande"
         marca = " ▼" if mejor else ""  # el color no es la única pista
