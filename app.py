@@ -13,9 +13,9 @@ from ui.tema import AMBAR, GRIS, aplicar_estilos
 
 RAIZ = Path(__file__).parent
 RUTA_EMPRESAS = RAIZ / "data" / "processed" / "empresas.parquet"
-MOSTRAR_TIEMPO = True  # ponlo en False antes de la demo
+MOSTRAR_TIEMPO = True
 LIMITE_MS = 300
-USAR_FRAGMENTO = False  # prueba: ponlo en False si algún botón no responde (se vuelve a correr toda la página)
+USAR_FRAGMENTO = True
 
 st.set_page_config(layout="wide")
 aplicar_estilos()
@@ -51,7 +51,7 @@ def _pantalla(empresas):
     with col_izq:
         _titulo("Palancas")
         perfil = selector.render(empresas)
-        if perfil is None:  # "Mi empresa" aún no se envía; el selector ya avisa qué falta
+        if perfil is None:
             return
         palancas_movidas, cambio, guardar = controles.render(perfil, con_guardar=True)
         nota_guardados = st.empty()
@@ -63,7 +63,7 @@ def _pantalla(empresas):
     )
 
     # Centro: se arman los espacios en orden y se llenan cuando hay estado.
-    # Los supuestos (⚙) se leen antes porque el motor los necesita; van junto a la brecha.
+
     with col_centro:
         _titulo("Comparativo")
         zona_tabla = st.container()
@@ -74,14 +74,14 @@ def _pantalla(empresas):
         with c_ajustes:
             ajustes = supuestos.render()
 
-    empresas_motor = comparativo.con_mi_empresa(empresas, perfil)  # el motor busca la empresa por nombre
+    empresas_motor = comparativo.con_mi_empresa(empresas, perfil)
     try:
         estado = calcular_estado(empresas_motor, perfil, palancas_movidas, cambio, ajustes)
     except ValueError as error:
         st.error(str(error))
         return
 
-    explicado = st.session_state.get("estado_explicado")  # última combinación explicada
+    explicado = st.session_state.get("estado_explicado")
     if guardar:
         _guardar_escenario(estado, explicado)
     total = len(st.session_state.get("escenarios_guardados", []))
@@ -92,7 +92,7 @@ def _pantalla(empresas):
         comparativo.render(estado)
     with zona_pesos:
         comparativo.cifras_pesos(estado, (c_medida, c_brecha))
-    with zona_extra:  # herramienta extra: solo se arma cuando se pide
+    with zona_extra:
         ver = st.session_state.get("_ver_palanca", False)
         st.button(
             "Ocultar gráfica por palanca" if ver else "Ver gráfica por palanca",
@@ -111,16 +111,16 @@ def _pantalla(empresas):
             disabled=not palancas_movidas, help="Mueve al menos una palanca y explica el escenario cuando esté listo.",
         )
         contenedor = st.container()
-        with st.container():  # primero la gráfica: no espera a que la IA termine de escribir
+        with st.container():
             comparativo.distribucion_rotacion(estado, empresas)
         if pulsado:
             explicacion.render(contenedor, estado, explicado)
             st.session_state["estado_explicado"] = estado
         elif explicado is not None:
             if explicacion.falta_explicar(estado, explicado):
-                explicacion.aviso_pendiente(contenedor)  # en lugar del texto viejo
+                explicacion.aviso_pendiente(contenedor)
             else:
-                explicacion.mostrar(contenedor, explicado)  # sin llamar a la IA
+                explicacion.mostrar(contenedor, explicado)
 
     if MOSTRAR_TIEMPO:
         t_click = st.session_state.pop("_t_click", None)
