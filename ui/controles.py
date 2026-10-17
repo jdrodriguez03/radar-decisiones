@@ -3,6 +3,12 @@ import time
 import streamlit as st
 
 EPS = 1e-9
+DEPURAR = False  # True: imprime en la terminal lo que hacen los botones (para buscar fallas)
+
+
+def _log(texto):
+    if DEPURAR:
+        print(f"[controles] {texto}", flush=True)
 
 
 def _moneda(v):
@@ -107,12 +113,14 @@ def _paso(clave, signo):
     lo, hi = st.session_state["_rangos"][clave]
     nuevo = st.session_state[_k(clave)] + signo * cfg["paso"]
     st.session_state[_k(clave)] = round(min(max(nuevo, lo), hi), 6)
+    _log(f"_paso {clave} {signo:+d} -> {st.session_state[_k(clave)]}")
     _registrar(clave)
 
 
 def _restablecer():
     _marcar_click()
     reales = st.session_state["_reales"]
+    _log(f"_restablecer: valores reales {reales}")
     for c, v in reales.items():
         st.session_state[_k(c)] = v
     st.session_state["_previos"] = dict(reales)
@@ -128,44 +136,53 @@ def render(perfil, con_guardar=False):
     """
     _iniciar(perfil)
 
-    for clave, cfg in CONTROLES.items():
-        if clave in st.session_state["_sin_dato"]:
+    # Los botones quedan debajo de las palancas, pero se leen primero: así Restablecer cambia los valores
+    # antes de que se dibujen los sliders de esta ejecución (sin depender de un callback).
+    zona_filas = st.container()
+    zona_botones = st.container()
+    guardar = False
+    with zona_botones:
+        if con_guardar:
+            c_rest, c_guardar = st.columns(2, gap="small")
+            reiniciar = c_rest.button("↻ Restablecer", key="btn_restablecer", use_container_width=True)
+            guardar = c_guardar.button("Guardar escenario", key="btn_guardar", use_container_width=True)
+        else:
+            reiniciar = st.button("↻ Restablecer", key="btn_restablecer")
+    if reiniciar:
+        _restablecer()
+    _log("render: " + str({k: v for k, v in st.session_state.items() if k.startswith("valor_")}))
+
+    with zona_filas:
+        for clave, cfg in CONTROLES.items():
+            if clave in st.session_state["_sin_dato"]:
+                c_nom, c_val = st.columns([3, 2], gap="small", vertical_alignment="center")
+                c_nom.markdown(f'<div class="palanca-nombre">{cfg["nombre"]}</div>', unsafe_allow_html=True)
+                c_val.markdown('<div class="palanca-valor">Sin dato</div>', unsafe_allow_html=True)
+                continue
+            lo, hi = st.session_state["_rangos"][clave]
             c_nom, c_val = st.columns([3, 2], gap="small", vertical_alignment="center")
             c_nom.markdown(f'<div class="palanca-nombre">{cfg["nombre"]}</div>', unsafe_allow_html=True)
-            c_val.markdown('<div class="palanca-valor">Sin dato</div>', unsafe_allow_html=True)
-            continue
-        lo, hi = st.session_state["_rangos"][clave]
-        c_nom, c_val = st.columns([3, 2], gap="small", vertical_alignment="center")
-        c_nom.markdown(f'<div class="palanca-nombre">{cfg["nombre"]}</div>', unsafe_allow_html=True)
-        c_val.markdown(
-            f'<div class="palanca-valor">{cfg["fmt"](st.session_state[_k(clave)])}</div>',
-            unsafe_allow_html=True,
-        )
-        c_menos, c_mas, c_slider = st.columns([1.3, 1.3, 5], gap="small", vertical_alignment="center")
-        c_menos.button("−", key=f"menos_{clave}", on_click=_paso, args=(clave, -1),
-                       help=f"Bajar {cfg['paso']:g}", use_container_width=True)
-        c_mas.button("+", key=f"mas_{clave}", on_click=_paso, args=(clave, 1),
-                     help=f"Subir {cfg['paso']:g}", use_container_width=True)
-        c_slider.slider(
-            cfg["nombre"], min_value=lo, max_value=hi, step=cfg["paso"],
-            format=cfg["slider"], key=_k(clave), label_visibility="collapsed",
-            on_change=_registrar, args=(clave,),
-        )
-        real = st.session_state["_reales"][clave]
-        if real < cfg["min"] - EPS or real > cfg["max"] + EPS:
-            st.markdown(
-                f'<div class="palanca-aviso">Su valor ({cfg["fmt"](real)}) está fuera del rango de la encuesta '
-                f'({cfg["fmt"](cfg["min"])} a {cfg["fmt"](cfg["max"])}).</div>',
+            c_val.markdown(
+                f'<div class="palanca-valor">{cfg["fmt"](st.session_state[_k(clave)])}</div>',
                 unsafe_allow_html=True,
             )
-
-    guardar = False
-    if con_guardar:
-        c_rest, c_guardar = st.columns(2, gap="small")
-        c_rest.button("↻ Restablecer", on_click=_restablecer, use_container_width=True)
-        guardar = c_guardar.button("Guardar escenario", key="btn_guardar", use_container_width=True)
-    else:
-        st.button("↻ Restablecer", on_click=_restablecer)
+            c_menos, c_mas, c_slider = st.columns([1.3, 1.3, 5], gap="small", vertical_alignment="center")
+            c_menos.button("−", key=f"menos_{clave}", on_click=_paso, args=(clave, -1),
+                           help=f"Bajar {cfg['paso']:g}", use_container_width=True)
+            c_mas.button("+", key=f"mas_{clave}", on_click=_paso, args=(clave, 1),
+                         help=f"Subir {cfg['paso']:g}", use_container_width=True)
+            c_slider.slider(
+                cfg["nombre"], min_value=lo, max_value=hi, step=cfg["paso"],
+                format=cfg["slider"], key=_k(clave), label_visibility="collapsed",
+                on_change=_registrar, args=(clave,),
+            )
+            real = st.session_state["_reales"][clave]
+            if real < cfg["min"] - EPS or real > cfg["max"] + EPS:
+                st.markdown(
+                    f'<div class="palanca-aviso">Su valor ({cfg["fmt"](real)}) está fuera del rango de la encuesta '
+                    f'({cfg["fmt"](cfg["min"])} a {cfg["fmt"](cfg["max"])}).</div>',
+                    unsafe_allow_html=True,
+                )
 
     reales = st.session_state["_reales"]
     palancas_movidas = {
