@@ -146,3 +146,21 @@ def test_precalcular_no_repite_lo_que_ya_esta():
     resumen = precalcular([estado], cliente=ClienteFalso(trozos=["otro texto"]))
     assert resumen["ya_estaban"] == [llave(estado)]
     assert cargar()[llave(estado)]["texto"] == TEXTO_01
+
+
+def test_precalcular_rehace_un_texto_que_ya_no_es_valido():
+    # Si el motor cambia una cifra, el texto guardado queda vencido: se pide de nuevo
+    estado = cargar_fixture("01_aguinaldo")
+    guardar({llave(estado): {"texto": "Las 31 empresas que ya lo hacen pierden 9% al año."}})
+    resumen = precalcular([estado], cliente=ClienteFalso(trozos=[TEXTO_01]))
+    assert resumen["guardadas"] == [llave(estado)]
+    assert cargar()[llave(estado)]["texto"] == TEXTO_01
+
+
+def test_precalcular_borra_un_texto_vencido_si_no_logra_reemplazarlo():
+    estado = cargar_fixture("01_aguinaldo")
+    guardar({llave(estado): {"texto": "Las 31 empresas que ya lo hacen pierden 9% al año."}})
+    resumen = precalcular([estado], cliente=ClienteFalso(trozos=[], error=ConnectionError("sin internet")))
+    assert resumen["fallidas"] == [llave(estado)]
+    assert cargar() == {}
+
