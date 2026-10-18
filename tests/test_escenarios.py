@@ -10,6 +10,7 @@ from motor.api import calcular_estado
 from motor.datos import cargar
 from ui.escenarios import CLAVE_ESCENARIOS, comparar_escenarios
 from ui.selector import perfil_demo
+
 # se crean fixtures para cargar estados reales de la compañía 36 y se crean pruebas para comparar escenarios y guardar copias independientes de los estados.
 
 @pytest.fixture(scope="module")

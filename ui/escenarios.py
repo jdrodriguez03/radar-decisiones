@@ -3,6 +3,7 @@ from copy import deepcopy
 from numbers import Real
 
 import streamlit as st
+
 # Se crea clave para guardar los escenarios en session_state
 CLAVE_ESCENARIOS = "escenarios_ab"
 # se definen funciones para mostrar los escenarios guardados y sus diferencias

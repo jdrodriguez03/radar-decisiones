@@ -16,6 +16,8 @@ from motor.datos import cargar
 from ui import escenarios
 from ui.controles import render as render_controles
 from ui.selector import perfil_demo
+
+
 # se crea un subdirectorio "sandbox" para que no se confunda con el módulo "escenarios" de ui
 # función para cargar empresas desde el módulo de datos, con cache para no recargar en cada interacción
 @st.cache_data
