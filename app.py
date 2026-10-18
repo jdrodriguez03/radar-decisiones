@@ -3,16 +3,14 @@
 import copy
 import time
 from datetime import datetime
-from pathlib import Path
 
 import streamlit as st
 
+from config import RUTA_EMPRESAS
 from motor.api import calcular_estado
 from ui import comparativo, controles, explicacion, selector, supuestos
 from ui.tema import AMBAR, GRIS, aplicar_estilos
 
-RAIZ = Path(__file__).parent
-RUTA_EMPRESAS = RAIZ / "data" / "processed" / "empresas.parquet"
 MOSTRAR_TIEMPO = True
 LIMITE_MS = 300
 USAR_FRAGMENTO = True
@@ -34,7 +32,7 @@ def _guardar_escenario(estado, explicado):
     vigente = explicado is not None and not explicacion.falta_explicar(estado, explicado)
     guardados = st.session_state.setdefault("escenarios_guardados", [])
     guardados.append({
-        "hora": datetime.now().isoformat(timespec="seconds"),
+        "hora": datetime.now().astimezone().isoformat(timespec="seconds"),
         "estado": copy.deepcopy(estado),
         "explicacion": (explicado.get("explicacion") or {}).get("texto") if vigente else None,
     })
@@ -74,9 +72,8 @@ def _pantalla(empresas):
         with c_ajustes:
             ajustes = supuestos.render()
 
-    empresas_motor = comparativo.con_mi_empresa(empresas, perfil)
     try:
-        estado = calcular_estado(empresas_motor, perfil, palancas_movidas, cambio, ajustes)
+        estado = calcular_estado(empresas, perfil, palancas_movidas, cambio, ajustes)
     except ValueError as error:
         st.error(str(error))
         return
@@ -107,7 +104,7 @@ def _pantalla(empresas):
     with col_der:
         _titulo("Explicación")
         pulsado = st.button(
-            "Explicar", type="primary", key="btn_explicar", use_container_width=True,
+            "Explicar", type="primary", key="btn_explicar", width="stretch",
             disabled=not palancas_movidas, help="Mueve al menos una palanca y explica el escenario cuando esté listo.",
         )
         contenedor = st.container()
