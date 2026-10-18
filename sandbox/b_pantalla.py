@@ -8,12 +8,12 @@ import streamlit as st
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
 
+from config import RUTA_EMPRESAS, RUTA_FIXTURES
 from ui import comparativo
 from ui.controles import render
 from ui.tema import AMBAR, GRIS, aplicar_estilos
 
-CARPETA_FIXTURES = RAIZ / "contrato" / "fixtures"
-RUTA_EMPRESAS = RAIZ / "data" / "processed" / "empresas.parquet"
+CARPETA_FIXTURES = RUTA_FIXTURES
 MOSTRAR_TIEMPO = True
 LIMITE_MS = 300
 
