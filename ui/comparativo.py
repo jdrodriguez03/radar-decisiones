@@ -119,7 +119,7 @@ def mostrar_figura(fig, nombre_archivo):
     """Muestra una figura con las herramientas de siempre (zoom, captura, pantalla completa)."""
     st.plotly_chart(
         fig,
-        use_container_width=True,
+        width="stretch",
         config={
             "displaylogo": False,
             "toImageButtonOptions": {"format": "png", "filename": nombre_archivo, "scale": 2},
@@ -131,26 +131,6 @@ def _norm(texto):
     """Compara nombres sin importar mayúsculas, espacios ni acentos (COMPAÑÍA = Compania)."""
     descompuesto = unicodedata.normalize("NFD", str(texto).strip().upper())
     return "".join(c for c in descompuesto if unicodedata.category(c) != "Mn")
-
-
-def con_mi_empresa(empresas, perfil):
-    """Si la empresa del perfil no está en la tabla (caso «Mi empresa»), la agrega como una fila.
-
-    motor.comparar la busca por nombre exacto en la columna «empresa» y la excluye del universo;
-    solo necesita que exista (y su «banda» si se usa solo_tamano). Por eso la fila lleva únicamente
-    el nombre y se deja vacío lo demás: así no altera las medianas ni las desviaciones del motor.
-    Usa esta tabla solo para el motor; las gráficas usan la original.
-    """
-    if COL_ID not in empresas.columns:
-        return empresas
-    if perfil["id"] in set(empresas[COL_ID].astype(str)):
-        return empresas
-    fila = dict.fromkeys(empresas.columns, float("nan"))
-    fila[COL_ID] = perfil["id"]
-    if "id" in fila and "id" != COL_ID:
-        numericos = pd.to_numeric(empresas["id"], errors="coerce")
-        fila["id"] = int(numericos.max()) + 1 if numericos.notna().all() else perfil["id"]
-    return pd.concat([empresas, pd.DataFrame([fila])], ignore_index=True)
 
 
 def preparar_dispersion(datos, empresas, palancas=None):
