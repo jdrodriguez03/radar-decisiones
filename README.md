@@ -36,6 +36,7 @@ Siempre desde la raíz del repositorio, con el entorno `.venv` activo:
 | Comando | Qué hace |
 | --- | --- |
 | `streamlit run app.py` | Abre la app |
+| `bash scripts/demo_sin_internet.sh` (o doble clic en `scripts\demo_sin_internet.bat`) | Abre la app en MODO_DEMO: nunca llama a la API, solo caché o plantilla. Para cuando falla el wifi |
 | `pytest` | Corre las pruebas |
 | `ruff check .` | Revisa el estilo |
 
