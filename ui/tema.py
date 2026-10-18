@@ -10,7 +10,7 @@ ACENTO = "#46D3AA"     # único color de resalte: títulos y cifra del grupo
 GRIS = "#8B949E"       # textos secundarios
 AMBAR = "#D29922"      # para valores supuestos
 
-# Tamaños de letra (pensados para proyector)
+
 TAM_CIFRA = "40px"
 TAM_TITULO = "44px"
 TAM_TEXTO = "20px"
@@ -21,7 +21,7 @@ def aplicar_estilos():
     st.markdown(
         f"""
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@800&family=Oswald:wght@500&family=Nunito:ital,wght@0,400;0,600;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@800&family=Oswald:wght@500&family=Nunito:ital,wght@0,400;0,600;1,400&display=swap');
 
         html, body, [class*="st-"], .stApp {{ font-family: 'Nunito', sans-serif; color: {TEXTO}; }}
         /* los iconos de Streamlit usan su propia fuente; sin esto se ve el texto «expand_more» */
@@ -41,11 +41,14 @@ def aplicar_estilos():
                   background: {TRIANGULO}; clip-path: polygon(0 0, 100% 0, 100% 100%); z-index: 0; }}
         [data-testid="stMain"] {{ position: relative; z-index: 1; }}
 
-        .titulo-app {{ font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 54px;
-                       color: {ACENTO}; line-height: 1; text-transform: uppercase; }}
+        .titulo-app {{ font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 48px;
+                       letter-spacing: 5px; color: {ACENTO}; line-height: 1; text-transform: uppercase; }}
         .subtitulo {{ font-size: 18px; color: {GRIS}; text-transform: uppercase; margin: 4px 0 28px 8px; }}
-        .titulo-col {{ font-family: 'Oswald', sans-serif; font-weight: 500; font-size: {TAM_TITULO};
-                       letter-spacing: 6px; text-transform: uppercase; color: {TEXTO};
+        /* Títulos de columna: se achican con la pantalla y nunca pasan a una segunda línea («PALANCA / S»).
+           Si no hay internet y Oswald no carga, se usan fuentes angostas de Windows en su lugar. */
+        .titulo-col {{ font-family: 'Oswald', 'Bahnschrift Condensed', 'Arial Narrow', sans-serif; font-weight: 500;
+                       font-size: clamp(22px, 2.6vw, {TAM_TITULO}); letter-spacing: clamp(2px, 0.4vw, 6px);
+                       white-space: nowrap; text-transform: uppercase; color: {TEXTO};
                        text-align: center; margin-bottom: 28px; }}
 
         /* palancas */
@@ -62,6 +65,8 @@ def aplicar_estilos():
         .stButton button {{ padding: 0 4px; min-height: 36px; min-width: 36px; }}
         .stButton button p {{ font-size: 17px; white-space: nowrap; }}
         [data-testid="stPopover"] button {{ min-width: 44px; padding: 0 8px; }}
+        /* Al mover una palanca Streamlit atenúa la pantalla mientras recalcula; se ve como un parpadeo */
+        [data-stale="true"] {{ opacity: 1 !important; transition: none !important; }}
         .palanca-aviso {{ font-size: 15px; color: {AMBAR}; margin: -6px 0 6px 0; }}
         [class*="st-key-menos_"] button p, [class*="st-key-mas_"] button p {{
             font-size: 24px; font-style: normal; font-weight: 700; line-height: 1; margin: 0; }}
@@ -79,6 +84,11 @@ def aplicar_estilos():
         .tabla td {{ font-size: {TAM_TEXTO}; color: {TEXTO}; text-align: center; padding: 16px 8px;
                      border: 2px solid {LINEA}; background: {FONDO}; }}
         .tabla td.nombre {{ font-size: 22px; }}
+        /* tabla de escenarios A y B (extra): más compacta que la del comparativo */
+        .tabla-ab th {{ font-size: 20px; padding: 8px 6px; }}
+        .tabla-ab td {{ font-size: 17px; padding: 8px 6px; }}
+        .tabla-ab td.nombre {{ font-size: 17px; text-align: left; }}
+        .tabla-ab .cifra {{ font-size: 19px; white-space: nowrap; }}
         .cifra {{ font-size: 24px; font-weight: 700; color: {TEXTO}; }}
         .cifra-acento {{ font-size: 24px; font-weight: 700; color: {ACENTO}; }}
         .supuesto {{ color: {AMBAR}; }}

@@ -4,7 +4,7 @@ import time
 import streamlit as st
 
 EPS = 1e-9
-DEPURAR = False  # True: imprime en la terminal lo que hacen los botones (para buscar fallas)
+DEPURAR = False
 
 
 def _log(texto):
@@ -23,28 +23,27 @@ def _pct(v):
     return f"{v:.1%}"
 
 
-# Rangos y pasos de la tabla de controles del proyecto.
-# prima y vales se guardan como fracción (0.25 = 25%), igual que el contrato.
+
 CONTROLES = {
     "sal_dia_ini": {
         "nombre": "Salario diario inicial", "min": 250.0, "max": 380.0, "paso": 10.0,
-        "fmt": _moneda, "slider": "%.0f",
+        "fmt": _moneda, "slider": "%.0f", "paso_txt": "$10 diarios",
     },
     "aguinaldo_op": {
         "nombre": "Aguinaldo (días)", "min": 15.0, "max": 32.0, "paso": 1.0,
-        "fmt": lambda v: f"{v:.0f}", "slider": "%.0f",
+        "fmt": lambda v: f"{v:.0f}", "slider": "%.0f", "paso_txt": "1 día",
     },
     "prima_vac_op": {
         "nombre": "Prima Vacacional", "min": 0.25, "max": 1.0, "paso": 0.05,
-        "fmt": _pct, "slider": "%.2f",
+        "fmt": _pct, "slider": "%.2f", "paso_txt": "5 puntos porcentuales",
     },
     "vales_op": {
         "nombre": "Vales", "min": 0.06, "max": 0.12, "paso": 0.005,
-        "fmt": _pct, "slider": "%.3f",
+        "fmt": _pct, "slider": "%.3f", "paso_txt": "0.5 puntos porcentuales",
     },
     "rutas_x100": {
         "nombre": "Rutas por 100", "min": 0.0, "max": 10.8, "paso": 0.5,
-        "fmt": lambda v: f"{v:.2f}", "slider": "%.1f",
+        "fmt": lambda v: f"{v:.2f}", "slider": "%.1f", "paso_txt": "0.5 rutas por cada 100",
     },
 }
 
@@ -64,7 +63,7 @@ def _rango(cfg, real):
     n_abajo = int((real - piso + EPS) // p)
     n_arriba = int((techo - real + EPS) // p)
     lo, hi = round(real - n_abajo * p, 6), round(real + n_arriba * p, 6)
-    if hi <= lo:  # el slider necesita un mínimo menor que el máximo
+    if hi <= lo:
         hi = round(lo + p, 6)
     return lo, hi
 
@@ -88,9 +87,8 @@ def _iniciar(perfil):
         for c, v in reales.items():
             st.session_state[_k(c)] = v
         st.session_state["_firma_perfil"] = firma
-        st.session_state.pop("estado_explicado", None)  # otra empresa: no hay última explicación
-    # Streamlit borra el valor de un slider cuando una ejecución no lo dibuja (por ejemplo, al ver «Mi empresa»
-    # sin enviar). Si pasó, se restaura con el último valor conocido en lugar de fallar.
+        st.session_state.pop("estado_explicado", None)
+        st.session_state.pop("historial", None)
     for clave, real in st.session_state["_reales"].items():
         if _k(clave) not in st.session_state:
             st.session_state[_k(clave)] = st.session_state["_previos"].get(clave, real)
@@ -129,7 +127,8 @@ def _restablecer():
         st.session_state[_k(c)] = v
     st.session_state["_previos"] = dict(reales)
     st.session_state["cambio"] = None
-    st.session_state.pop("estado_explicado", None)  # restablecer también borra la última explicación
+    st.session_state.pop("estado_explicado", None) 
+    st.session_state.pop("historial", None)
 
 
 def render(perfil, con_guardar=False):
@@ -140,17 +139,15 @@ def render(perfil, con_guardar=False):
     """
     _iniciar(perfil)
 
-    # Los botones quedan debajo de las palancas, pero se leen primero: así Restablecer cambia los valores
-    # antes de que se dibujen los sliders de esta ejecución (sin depender de un callback).
     zona_filas = st.container()
     zona_botones = st.container()
     guardar = False
     with zona_botones:
-        # Misma estructura con o sin «Guardar»: en las pruebas, el botón suelto fallaba y este esquema no
+
         c_rest, c_guardar = st.columns(2, gap="small")
-        reiniciar = c_rest.button("↻ Restablecer", key="btn_restablecer", use_container_width=True)
+        reiniciar = c_rest.button("↻ Restablecer", key="btn_restablecer", width="stretch")
         if con_guardar:
-            guardar = c_guardar.button("Guardar escenario", key="btn_guardar", use_container_width=True)
+            guardar = c_guardar.button("Guardar escenario", key="btn_guardar", width="stretch")
     if reiniciar:
         _restablecer()
     _log(f"render: reiniciar={reiniciar} guardar={guardar}")
@@ -170,8 +167,10 @@ def render(perfil, con_guardar=False):
                 unsafe_allow_html=True,
             )
             c_menos, c_mas, c_slider = st.columns([1.3, 1.3, 5], gap="small", vertical_alignment="center")
-            c_menos.button("−", key=f"menos_{clave}", on_click=_paso, args=(clave, -1), use_container_width=True)
-            c_mas.button("+", key=f"mas_{clave}", on_click=_paso, args=(clave, 1), use_container_width=True)
+            c_menos.button("−", key=f"menos_{clave}", on_click=_paso, args=(clave, -1), width="stretch",
+                           help=f"Bajar {cfg['paso_txt']}")
+            c_mas.button("+", key=f"mas_{clave}", on_click=_paso, args=(clave, 1), width="stretch",
+                         help=f"Subir {cfg['paso_txt']}")
             c_slider.slider(
                 cfg["nombre"], min_value=lo, max_value=hi, step=cfg["paso"],
                 format=cfg["slider"], key=_k(clave), label_visibility="collapsed",
@@ -185,7 +184,7 @@ def render(perfil, con_guardar=False):
                     unsafe_allow_html=True,
                 )
 
-    if DEPURAR:  # panel de ayuda: muestra en pantalla qué ejecuciones y clics llegaron
+    if DEPURAR:
         st.session_state["_corridas"] = st.session_state.get("_corridas", 0) + 1
         st.code(f"ejecución {st.session_state['_corridas']}\n" + "\n".join(st.session_state.get("_eventos", [])))
 

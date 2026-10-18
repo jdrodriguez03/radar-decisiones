@@ -8,12 +8,27 @@ import streamlit as st
 
 from config import RUTA_EMPRESAS
 from motor.api import calcular_estado
-from ui import comparativo, controles, explicacion, selector, supuestos
+from ui import (
+    comparativo,
+    controles,
+    escenarios,
+    explicacion,
+    historial,
+    selector,
+    supuestos,
+)
 from ui.tema import AMBAR, GRIS, aplicar_estilos
 
 MOSTRAR_TIEMPO = True
 LIMITE_MS = 300
 USAR_FRAGMENTO = True
+
+EXTRAS = {
+    "escenarios": False,
+    "historial": False,
+    "tamano_parecido": True,
+    "semaforo": True,
+}
 
 st.set_page_config(layout="wide")
 aplicar_estilos()
@@ -27,6 +42,38 @@ def _titulo(texto):
     st.markdown(f'<div class="titulo-col">{texto}</div>', unsafe_allow_html=True)
 
 
+def _avisar_mi_empresa(perfil):
+    """Al pulsar «Usar mi empresa» los cambios quedan arriba, fuera de la vista; un aviso confirma que se aplicaron."""
+    firma = (perfil["id"], perfil.get("plantilla_op"), str(sorted(perfil["palancas"].items())))
+    anterior = st.session_state.get("_firma_mostrada")
+    st.session_state["_firma_mostrada"] = firma
+    if anterior is not None and anterior != firma and perfil["id"] == selector.MI_EMPRESA_ID:
+        st.toast("Datos de su empresa cargados: las palancas y el comparativo ya los usan.", icon="✅")
+
+
+def _olvidar_explicacion():
+    """Cambiar el universo (tamaño parecido) cambia el grupo: la última explicación ya no corresponde."""
+    st.session_state.pop("estado_explicado", None)
+
+
+def _limpiar_ab():
+    st.session_state.pop(escenarios.CLAVE_ESCENARIOS, None)
+
+
+def _calcular(empresas, perfil, palancas_movidas, cambio, ajustes, solo_tamano, aviso):
+    """Llama al motor. Si «Mi empresa» no cae en ninguna banda de tamaño, compara con todas y lo dice."""
+    if solo_tamano:
+        try:
+            return calcular_estado(empresas, perfil, palancas_movidas, cambio, ajustes, solo_tamano=True)
+        except ValueError:
+            aviso.markdown(
+                '<div class="palanca-aviso">Su plantilla no cae en ninguna banda de tamaño de la encuesta: '
+                "se compara con todas las empresas.</div>",
+                unsafe_allow_html=True,
+            )
+    return calcular_estado(empresas, perfil, palancas_movidas, cambio, ajustes)
+
+
 def _guardar_escenario(estado, explicado):
     """Captura lo que hay en pantalla: el estado completo y, si está vigente, su explicación."""
     vigente = explicado is not None and not explicacion.falta_explicar(estado, explicado)
@@ -36,7 +83,14 @@ def _guardar_escenario(estado, explicado):
         "estado": copy.deepcopy(estado),
         "explicacion": (explicado.get("explicacion") or {}).get("texto") if vigente else None,
     })
-    st.toast(f"Escenario guardado ({len(guardados)})")
+    if not EXTRAS["escenarios"]:
+        st.toast(f"Escenario guardado ({len(guardados)})")
+        return
+    try:
+        nombre = escenarios.guardar(estado)["nombre"]
+        st.toast(f"Escenario {nombre} guardado")
+    except ValueError:
+        st.toast("Ya hay un escenario A y uno B. Pulse «Limpiar A y B» para comparar otros.", icon="⚠️")
 
 
 def _pantalla(empresas):
@@ -51,6 +105,16 @@ def _pantalla(empresas):
         perfil = selector.render(empresas)
         if perfil is None:
             return
+        _avisar_mi_empresa(perfil)
+        solo_tamano = False
+        if EXTRAS["tamano_parecido"]:
+            solo_tamano = st.toggle(
+                "Solo tamaño parecido", value=st.session_state.get("_solo_tamano", False),
+                key="solo_tamano", on_change=_olvidar_explicacion,
+                help="Compara solo con empresas de la misma banda de plantilla que la suya: chica, mediana o grande.",
+            )
+            st.session_state["_solo_tamano"] = solo_tamano
+        aviso_tamano = st.empty()
         palancas_movidas, cambio, guardar = controles.render(perfil, con_guardar=True)
         nota_guardados = st.empty()
 
@@ -73,7 +137,7 @@ def _pantalla(empresas):
             ajustes = supuestos.render()
 
     try:
-        estado = calcular_estado(empresas, perfil, palancas_movidas, cambio, ajustes)
+        estado = _calcular(empresas, perfil, palancas_movidas, cambio, ajustes, solo_tamano, aviso_tamano)
     except ValueError as error:
         st.error(str(error))
         return
@@ -99,6 +163,8 @@ def _pantalla(empresas):
             palanca_x = cambio["palanca"] if cambio else "sal_dia_ini"
             valor_x = palancas_movidas.get(palanca_x, perfil["palancas"].get(palanca_x))
             comparativo.dispersion(estado, empresas, palanca_x, valor_x)
+        if EXTRAS["escenarios"]:
+            comparativo.escenarios_ab(st.session_state.get(escenarios.CLAVE_ESCENARIOS, []), _limpiar_ab)
 
     # Derecha: Explicar, explicación y, debajo, la rotación por grupo
     with col_der:
@@ -107,17 +173,23 @@ def _pantalla(empresas):
             "Explicar", type="primary", key="btn_explicar", width="stretch",
             disabled=not palancas_movidas, help="Mueve al menos una palanca y explica el escenario cuando esté listo.",
         )
+        if EXTRAS["semaforo"]:
+            explicacion.semaforo(st.container(), estado)
         contenedor = st.container()
         with st.container():
             comparativo.distribucion_rotacion(estado, empresas)
         if pulsado:
             explicacion.render(contenedor, estado, explicado)
             st.session_state["estado_explicado"] = estado
+            if EXTRAS["historial"]:
+                st.session_state["historial"] = historial.agregar(st.session_state.get("historial", []), estado)
         elif explicado is not None:
             if explicacion.falta_explicar(estado, explicado):
                 explicacion.aviso_pendiente(contenedor)
             else:
                 explicacion.mostrar(contenedor, explicado)
+        if EXTRAS["historial"]:
+            historial.render(st.session_state.get("historial", []))
 
     if MOSTRAR_TIEMPO:
         t_click = st.session_state.pop("_t_click", None)
