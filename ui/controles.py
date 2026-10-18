@@ -1,3 +1,4 @@
+import math
 import time
 
 import streamlit as st
@@ -70,7 +71,7 @@ def _rango(cfg, real):
 
 def _falta(valor):
     """True si la palanca no tiene dato (None o NaN), como pasa con algunas empresas de la encuesta."""
-    return valor is None or valor != valor
+    return valor is None or math.isnan(valor)
 
 
 def _iniciar(perfil):
