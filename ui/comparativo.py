@@ -4,13 +4,11 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from ui import procedencia
+from ui import escenarios, procedencia
 from ui.controles import CONTROLES
 from ui.tema import ACENTO, AMBAR, GRIS, LINEA, TEXTO
 
-# Columnas esperadas en data/empresas.parquet (ajusta aquí si se llaman distinto).
-# Las columnas de las palancas se llaman igual que sus claves: sal_dia_ini, aguinaldo_op, ...
-COL_ID = "empresa"   # nombre de la compañía, ej. "COMPAÑÍA 36" (la columna "id" del parquet es otra cosa)
+COL_ID = "empresa"
 COL_Y = "rot_anual"
 
 EPS = 1e-9
@@ -81,10 +79,10 @@ def _fmt(valor):
 def render(datos):
     """Comparativo: empresa, grupo y resto en grande, con encabezado y aviso de grupo completado."""
     grupo = datos["grupo"]
-    # Con nada movido el fixture puede traer resto en null: no hay grupo contra el cual separarlo
+
     ind_resto = (datos.get("resto") or {}).get("indicadores") or {}
 
-    # Encabezado: cambia con cada movimiento porque n sale del fixture/motor
+
     _html(f'<div class="comp-encabezado">Comparando con {grupo["n"]} empresas reales</div>')
 
     if grupo.get("completado"):
@@ -96,8 +94,8 @@ def render(datos):
         emp = datos["empresa"]["indicadores"][clave]
         gru = (grupo.get("indicadores") or {}).get(clave)
         res = ind_resto.get(clave)
-        # En los tres indicadores un valor menor es mejor
-        mejor = gru is not None and emp is not None and gru < emp  # «Mi empresa» no captura todos los indicadores
+
+        mejor = gru is not None and emp is not None and gru < emp  
         hay_mejor = hay_mejor or mejor
         clase_grupo = "cifra-grande-acento" if mejor else "cifra-grande"
         marca = " ▼" if mejor else ""  # el color no es la única pista
@@ -154,7 +152,7 @@ def preparar_dispersion(datos, empresas, palancas=None):
     propia = df["_id"] == _norm(datos["empresa"]["id"])
 
     elegida = df[propia]
-    if elegida.empty:  # si no está en el parquet, se ubica con los datos del estado
+    if elegida.empty:
         fila = {COL_ID: [datos["empresa"]["id"]], COL_Y: [datos["empresa"]["indicadores"]["rot_anual"]]}
         fila.update({p: [datos["empresa"]["palancas"][p]] for p in lista})
         elegida = pd.DataFrame(fila)
@@ -181,7 +179,6 @@ def dispersion(datos, empresas, palanca_x, valor_x):
     capas = [
         ("Grupo", {"size": 10, "color": ACENTO}, grupos["grupo"]),
         ("Resto", {"size": 10, "color": GRIS}, grupos["resto"]),
-        # círculo hueco para que se vea sobre el fondo oscuro
         ("Sin clasificar", {"size": 10, "color": "rgba(0,0,0,0)", "line": {"color": GRIS, "width": 1.5}},
          grupos["otras"]),
     ]
@@ -200,10 +197,10 @@ def dispersion(datos, empresas, palanca_x, valor_x):
         marker={"size": 20, "symbol": "diamond", "color": TEXTO, "line": {"color": ACENTO, "width": 2}},
     ))
 
-    if valor_x is not None:  # la empresa puede no tener dato en esa palanca
+    if valor_x is not None:
         fig.add_vline(x=valor_x, line_dash="dot", line_color=TEXTO)
 
-    # Medianas de rotación anual; si no hay resto (nada movido) solo se dibuja la del grupo
+
     medianas = [
         ("grupo", ACENTO, grupos["grupo"][COL_Y].median(), "top right"),
         ("resto", GRIS, grupos["resto"][COL_Y].median(), "bottom right"),
@@ -241,7 +238,7 @@ def _base_layout(fig, altura):
     )
 
 
-X_BORDE = 1.14  # carril "+100%": quienes pierden más de 100% se muestran al borde
+X_BORDE = 1.14
 
 
 def _apilar(valores, ancho=0.03, paso=0.17):
@@ -297,7 +294,7 @@ def distribucion_rotacion(datos, empresas, altura=None):
         fig.add_annotation(x=en_eje(med), y=y0 + 0.36, text=f"{med:.0%}", showarrow=False,
                            yshift=14, font={"color": TEXTO, "size": 18})
 
-    # Estado actual de la empresa: raya punteada con rombo arriba
+
     xe = en_eje(rot_e)
     y_top = n - 0.1
     fig.add_shape(type="line", x0=xe, x1=xe, y0=-0.6, y1=y_top, line={"color": TEXTO, "width": 2, "dash": "dash"})
@@ -305,7 +302,7 @@ def distribucion_rotacion(datos, empresas, altura=None):
         x=[xe], y=[y_top], mode="markers", hovertext=[f"{nombre_e}: {rot_e:.0%}"], hoverinfo="text",
         marker={"size": 18, "symbol": "diamond", "color": TEXTO},
     ))
-    derecha = xe > 0.45  # con espacio a la derecha la etiqueta se corta
+    derecha = xe > 0.45
     fig.add_annotation(x=xe, y=y_top, text=f"Empresa hoy: {rot_e:.0%}", showarrow=False,
                        xanchor="right" if derecha else "left", xshift=-16 if derecha else 16,
                        font={"color": TEXTO, "size": 18})
@@ -422,3 +419,76 @@ def en_comun(datos):
             procedencia.observado(f'{item["texto"]}: grupo {item["grupo"]} · resto {item["resto"]}'),
             unsafe_allow_html=True,
         )
+
+
+def _palancas_escenario(escenario):
+    """«Aguinaldo (días) 20 · Prima Vacacional 50.0%», o «sin cambios» si no se movió nada."""
+    movidas = escenario.get("palancas_movidas") or {}
+    if not movidas:
+        return "sin cambios"
+    return " · ".join(f'{CONTROLES[c]["nombre"]} {CONTROLES[c]["fmt"](v)}' for c, v in movidas.items() if c in CONTROLES)
+
+
+def _entero(v):
+    return f"{v:g}"
+
+
+def _pct(v):
+    return f"{v:.1%}"
+
+
+def _puntos(v):
+    """Diferencia entre dos porcentajes, en puntos porcentuales: 0.052 -> «5.2 pp»."""
+    return f"{v * 100:.1f} pp"
+
+
+def _con_signo(valor, formato):
+    if valor is None:
+        return "—"
+    signo = "+" if valor > 0 else ("−" if valor < 0 else "")
+    return signo + formato(abs(valor))
+
+
+def escenarios_ab(guardados, al_limpiar):
+    """Extra: los escenarios A y B lado a lado, con la diferencia B − A (la calcula ui/escenarios.py)."""
+    if not guardados:
+        return
+    a = guardados[0]
+    if len(guardados) == 1:
+        _html(
+            f'<div class="texto-gris" style="margin-top:12px">Escenario A guardado ({a["empresa"]["id"]}: '
+            f"{_palancas_escenario(a)}). Mueva las palancas y pulse «Guardar escenario» para el B.</div>"
+        )
+        st.button("Limpiar A y B", key="btn_limpiar_ab", on_click=al_limpiar)
+        return
+
+    b = guardados[1]
+    dif = escenarios.comparar_escenarios(a["estado"], b["estado"])
+    filas = [
+        ("Empresas en el grupo", dif["n_grupo"], _entero, _entero),
+        ("Rotación anual del grupo", dif["rotacion_grupo"], _pct, _puntos),
+        ("Costo anual de la medida", dif["costo_medida"], pesos, pesos),
+        ("Costo anual de la brecha", dif["costo_brecha"], pesos, pesos),
+    ]
+    html = ""
+    for nombre, d, fmt, fmt_dif in filas:
+        html += (
+            f'<tr><td class="nombre">{nombre}</td>'
+            f'<td><span class="cifra">{"—" if d["a"] is None else fmt(d["a"])}</span></td>'
+            f'<td><span class="cifra">{"—" if d["b"] is None else fmt(d["b"])}</span></td>'
+            f'<td><span class="cifra">{_con_signo(d["diferencia_b_menos_a"], fmt_dif)}</span></td></tr>'
+        )
+    senal = dif["senal"]
+    html += (
+        '<tr><td class="nombre">Señal</td>'
+        f'<td>{senal["a"].get("etiqueta", "—")}</td><td>{senal["b"].get("etiqueta", "—")}</td>'
+        f'<td>{"cambia" if senal["cambio"] else "igual"}</td></tr>'
+    )
+    _html(
+        '<div class="grafica-titulo" style="margin-top:18px">Escenarios A y B</div>'
+        '<table class="tabla tabla-ab"><tr><th></th><th>A</th><th>B</th><th>B − A</th></tr>'
+        f"{html}</table>"
+        f'<div class="texto-gris" style="margin-top:6px">A · {a["empresa"]["id"]}: {_palancas_escenario(a)}<br>'
+        f'B · {b["empresa"]["id"]}: {_palancas_escenario(b)}</div>'
+    )
+    st.button("Limpiar A y B", key="btn_limpiar_ab", on_click=al_limpiar)
