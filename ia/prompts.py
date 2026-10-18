@@ -284,6 +284,11 @@ def describir_cambios(estado, anterior):
             lineas.append(f"- quitó {NOMBRES_PALANCA[c['palanca']]}: vuelve a su valor real y ya no filtra a las empresas")
         else:
             lineas.append(f"- {nivel(c['palanca'], c['a'])} ({c['tipo']})")
+    costo_antes = _dato(anterior, ("pesos", "supuestos", "costo_por_baja"))
+    costo_ahora = _dato(estado, ("pesos", "supuestos", "costo_por_baja"))
+    if anterior and costo_antes != costo_ahora:
+        # El juez abrió ⚙ y cambió un supuesto: no es una palanca, pero cambia la brecha en pesos
+        lineas.append(f"- el costo por baja (un supuesto del directivo) pasó de ${costo_antes:,.0f} a ${costo_ahora:,.0f}")
     if not lineas:
         lineas.append("- ninguna palanca cambió")
     texto = f"{titulo}:\n" + "\n".join(lineas)
