@@ -5,6 +5,7 @@ from math import sqrt
 from numbers import Integral
 
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 
 from config import PALANCAS
 
@@ -51,12 +52,17 @@ def _conteo_si(
     grupo: pd.Series,
     resto: pd.Series,
 ) -> tuple[dict[str, str], float] | None:
-    validos = pd.concat([grupo.dropna(), resto.dropna()])
-    if validos.empty:
+    valores_grupo = [valor for valor in grupo.tolist() if not pd.isna(valor)]
+    valores_resto = [valor for valor in resto.tolist() if not pd.isna(valor)]
+    if not valores_grupo and not valores_resto:
         return None
-    normalizados = validos.map(
-        lambda valor: str(valor).strip().casefold().replace("í", "i")
-    )
+
+    def normalizar(valor: object) -> str:
+        return str(valor).strip().casefold().replace("í", "i")
+
+    normalizados = [
+        normalizar(valor) for valor in (*valores_grupo, *valores_resto)
+    ]
     permitidos = {"si", "no", "yes", "true", "false"}
     inesperados = set(normalizados).difference(permitidos)
     if inesperados:
@@ -64,25 +70,34 @@ def _conteo_si(
             f"Valores no reconocidos en la columna Sí/No {columna}: {sorted(inesperados)}"
         )
 
-    g_validos = grupo.dropna()
-    r_validos = resto.dropna()
-    cuenta_g = int(g_validos.map(_es_si).sum())
-    cuenta_r = int(r_validos.map(_es_si).sum())
-    proporcion_g = cuenta_g / len(g_validos) if len(g_validos) else 0.0
-    proporcion_r = cuenta_r / len(r_validos) if len(r_validos) else 0.0
+    si = {"si", "yes", "true"}
+    cuenta_g = sum(valor in si for valor in normalizados[: len(valores_grupo)])
+    cuenta_r = sum(valor in si for valor in normalizados[len(valores_grupo) :])
+    proporcion_g = cuenta_g / len(valores_grupo) if valores_grupo else 0.0
+    proporcion_r = cuenta_r / len(valores_resto) if valores_resto else 0.0
 
-    p_comun = (cuenta_g + cuenta_r) / (len(g_validos) + len(r_validos))
+    p_comun = (cuenta_g + cuenta_r) / (len(valores_grupo) + len(valores_resto))
     error_estandar = sqrt(
-        p_comun * (1 - p_comun) * (1 / len(g_validos) + 1 / len(r_validos))
-    ) if len(g_validos) and len(r_validos) else 0.0
+        p_comun
+        * (1 - p_comun)
+        * (1 / len(valores_grupo) + 1 / len(valores_resto))
+    ) if valores_grupo and valores_resto else 0.0
     puntuacion = abs(proporcion_g - proporcion_r) / error_estandar if error_estandar else 0.0
     return (
         {
-            "grupo": f"{cuenta_g} de {len(g_validos)}",
-            "resto": f"{cuenta_r} de {len(r_validos)}",
+            "grupo": f"{cuenta_g} de {len(valores_grupo)}",
+            "resto": f"{cuenta_r} de {len(valores_resto)}",
         },
         puntuacion,
     )
+
+
+def _a_numerico(df: pd.DataFrame, columnas: list[str]) -> pd.DataFrame:
+    dtypes = df.dtypes
+    if all(is_numeric_dtype(dtypes[columna]) for columna in columnas):
+        return df[columnas]
+    return df[columnas].apply(pd.to_numeric, errors="coerce")
+
 
 # se define la función diferencias_principales que compara dos grupos de datos (grupo y resto) 
 # y devuelve los n rasgos más distintos entre ellos. La función calcula diferencias en proporciones 
@@ -132,6 +147,25 @@ def diferencias_principales(
         if referencia is None
         else referencia
     )
+    columnas_numericas = [
+        columna
+        for columna in columnas
+        if columna not in {"comedor", "jornada_12h"}
+    ]
+    grupo_numerico = _a_numerico(grupo, columnas_numericas)
+    resto_numerico = _a_numerico(resto, columnas_numericas)
+    conteos_g = grupo_numerico.count().to_dict()
+    conteos_r = resto_numerico.count().to_dict()
+    medianas_g = grupo_numerico.median().to_dict()
+    medianas_r = resto_numerico.median().to_dict()
+    columnas_referencia = [
+        columna
+        for columna in columnas_numericas
+        if columna in referencia_numerica.columns
+    ]
+    desviaciones = _a_numerico(
+        referencia_numerica, columnas_referencia
+    ).std(ddof=0).to_dict()
     candidatos: list[tuple[float, int, dict[str, str | float]]] = []
 
     for orden, columna in enumerate(columnas):
@@ -145,21 +179,19 @@ def diferencias_principales(
             )
             continue
 
-        grupo_numerico = pd.to_numeric(grupo[columna], errors="coerce")
-        resto_numerico = pd.to_numeric(resto[columna], errors="coerce")
-        validos_g = grupo_numerico.dropna()
-        validos_r = resto_numerico.dropna()
-        if validos_g.empty or validos_r.empty:
+        n_g = int(conteos_g[columna])
+        n_r = int(conteos_r[columna])
+        if n_g == 0 or n_r == 0:
             continue
 
         if columna == "prima_vac_op":
-            cuenta_g = int(validos_g.ge(0.5).sum())
-            cuenta_r = int(validos_r.ge(0.5).sum())
-            proporcion_g = cuenta_g / len(validos_g)
-            proporcion_r = cuenta_r / len(validos_r)
-            p_comun = (cuenta_g + cuenta_r) / (len(validos_g) + len(validos_r))
+            cuenta_g = int(grupo_numerico[columna].ge(0.5).sum())
+            cuenta_r = int(resto_numerico[columna].ge(0.5).sum())
+            proporcion_g = cuenta_g / n_g
+            proporcion_r = cuenta_r / n_r
+            p_comun = (cuenta_g + cuenta_r) / (n_g + n_r)
             error_estandar = sqrt(
-                p_comun * (1 - p_comun) * (1 / len(validos_g) + 1 / len(validos_r))
+                p_comun * (1 - p_comun) * (1 / n_g + 1 / n_r)
             )
             puntuacion = (
                 abs(proporcion_g - proporcion_r) / error_estandar
@@ -168,18 +200,15 @@ def diferencias_principales(
             )
             valores_rasgo: dict[str, str | float] = {
                 "texto": NOMBRES_CONTEXTO[columna],
-                "grupo": f"{cuenta_g} de {len(validos_g)}",
-                "resto": f"{cuenta_r} de {len(validos_r)}",
+                "grupo": f"{cuenta_g} de {n_g}",
+                "resto": f"{cuenta_r} de {n_r}",
             }
         else:
-            mediana_g = float(validos_g.median())
-            mediana_r = float(validos_r.median())
+            mediana_g = float(medianas_g[columna])
+            mediana_r = float(medianas_r[columna])
             if columna not in referencia_numerica.columns:
                 raise ValueError(f"Falta la columna {columna!r} en la referencia.")
-            valores_referencia = pd.to_numeric(
-                referencia_numerica[columna], errors="coerce"
-            ).dropna()
-            desviacion = float(valores_referencia.std(ddof=0))
+            desviacion = float(desviaciones[columna])
             if desviacion == 0 or not pd.notna(desviacion):
                 continue
             puntuacion = abs(mediana_g - mediana_r) / desviacion
