@@ -12,6 +12,7 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from ui import controles
+
 """Banco de pruebas para encontrar qué hace fallar a Restablecer y a [+] / [−] en la app.
 
 Uso:  streamlit run sandbox/b_restablecer.py
@@ -23,12 +24,7 @@ No modifica ningún archivo del equipo.
 
 import sys
 from pathlib import Path
-
-import streamlit as st
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from ui import controles
 from ui.tema import aplicar_estilos
 
 st.set_page_config(layout="wide")
