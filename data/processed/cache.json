@@ -96,14 +96,15 @@
     "texto": "Las 20 empresas que ya dan prima vacacional de 50% o más pierden 20% de su plantilla al año; las otras 18, 43%. Para su empresa, esa diferencia equivale a $6.9 millones de pesos al año en bajas, contra $1.4 millones de pesos que costaría la medida. Con estos datos la señal no es concluyente: tómelo como referencia, no como conclusión."
   },
   "COMPAÑIA 36|prima_vac_op=1|15000": {
-    "creado": "2026-10-17",
+    "creado": "2026-10-18",
     "modelo": "claude-sonnet-5-5",
-    "texto": "Las 5 empresas que ya dan una prima vacacional de 100% o más pierden 20% de su plantilla al año; las demás, 38%. Para su empresa, esa diferencia equivale a $6.7 millones de pesos al año en bajas, contra $4.2 millones de pesos que costaría la medida. Como hay pocas empresas con esta combinación, se sumaron otras similares: tómelo como referencia, no como conclusión."
+    "texto": "Las 5 empresas que ya dan prima vacacional de 100% pierden 16% de su plantilla al año; las otras 33 empresas, 38%. Para su empresa, esa diferencia equivale a $7.8 millones de pesos al año en bajas, contra $4.2 millones de pesos que costaría la medida. Como hay pocas empresas con esta combinación, se sumaron otras similares: tómelo como referencia, no como conclusión."
   },
   "COMPAÑIA 36|rutas_x100=10.8|15000": {
-    "creado": "2026-10-17",
+    "creado": "2026-10-18",
+    "editado_a_mano": "2026-10-18",
     "modelo": "claude-sonnet-5-5",
-    "texto": "Las 5 empresas que ya tienen rutas de 10.8 por cada 100 operativos o más pierden 49% de su plantilla al año; las otras 33, 36%. Para su empresa, esa diferencia equivale a $0.5 millones de pesos al año en bajas, contra $48.0 millones de pesos que costaría la medida. Como hay pocas empresas con esta combinación, se sumaron otras similares: tómelo como referencia, no como conclusión."
+    "texto": "Pocas empresas dan 10.8 rutas por cada 100 operativos o más, por eso el grupo se completó con las más parecidas hasta llegar a 5 empresas: pierden 60% de su plantilla al año; las 33 restantes, 29%. La medida costaría $48 millones al año, y su empresa ya rota menos que esas 5 empresas. Con un grupo completado y una señal no concluyente, tómelo como referencia, no como conclusión."
   },
   "COMPAÑIA 36|rutas_x100=5|15000": {
     "creado": "2026-10-17",
@@ -116,9 +117,9 @@
     "texto": "Las 12 empresas que ya tienen un salario inicial de $340 o más pierden 16% de su plantilla al año; las otras 27, 42%. Para su empresa, que hoy pierde 52%, esa diferencia equivale a $7.8 millones de pesos al año en bajas, contra $8.6 millones de pesos que costaría la medida. Además, la mayoría de esas empresas también da prima vacacional de 50% o más."
   },
   "COMPAÑIA 36|sal_dia_ini=380|15000": {
-    "creado": "2026-10-17",
+    "creado": "2026-10-18",
     "modelo": "claude-sonnet-5-5",
-    "texto": "Las 5 empresas que ya dan un salario inicial de $380 o más pierden 38% de su plantilla al año; las otras 34, 32%. Para su empresa, esa diferencia equivale a $2.8 millones de pesos al año en bajas, contra $29.6 millones de pesos que costaría la medida. Como hay pocas empresas con esta combinación, se sumaron otras similares: tómelo como referencia, no como conclusión."
+    "texto": "Las 5 empresas que ya dan un salario inicial de $380 o más pierden 10% de su plantilla al año; las otras 34, 39%. Para su empresa, esa diferencia equivale a unas 604 personas al año, o $9.1 millones de pesos en bajas, contra $29.6 millones de pesos que costaría la medida. Como hay pocas empresas con esta combinación, se sumaron otras similares: tómelo como referencia, no como conclusión."
   },
   "COMPAÑIA 36|vales_op=0.06|15000": {
     "creado": "2026-10-17",

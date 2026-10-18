@@ -41,11 +41,21 @@ def test_en_el_guion_rotan_menos(estado):
     }
 
 
-@pytest.mark.parametrize("caso", ["E1", "E4", "R15-2"])
+@pytest.mark.parametrize("caso", ["E4", "R15-2"])
 def test_si_el_grupo_rota_mas_sale_la_alerta(estado, caso):
     dir_ = direccion(estado(caso))
     assert dir_["rotan_mas"] is True
     assert dir_["titulo"] == "⚠ Rotan más"
+
+
+def test_e1_completado_conserva_a_las_que_cumplen_y_rota_menos(estado):
+    # Desde el motor del 17 de octubre (PR #18), el completado conserva a las empresas que
+    # sí pagan $380 o más: el grupo rota menos que el resto. Como es completado, la barra
+    # sigue en naranja: la dirección y la solidez se leen por separado.
+    e1 = estado("E1")
+    assert e1["grupo"]["completado"] is True
+    assert direccion(e1)["rotan_mas"] is False
+    assert solidez(e1)["color"] == "naranja"
 
 
 def test_si_rotan_igual_tambien_es_alerta(estado):
@@ -136,7 +146,7 @@ def test_html_rotan_mas_va_en_rojo(estado):
 
 
 def test_las_piezas_se_pueden_dibujar_por_separado(estado):
-    e = estado("E4")
+    e = estado("R15-2")  # rotan más, no completado, y la medida cuesta más que la brecha
     direccion_sola = html_direccion(direccion(e))
     assert "⚠ Rotan más" in direccion_sola and "Solidez" not in direccion_sola
     solidez_sola = html_solidez(solidez(e))
