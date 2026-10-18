@@ -227,7 +227,7 @@ def _render_demo(empresas: pd.DataFrame) -> dict:
 def _render_mi_empresa(empresas: pd.DataFrame) -> dict | None:
     st.caption("Capture los datos de su planta. Las palancas usan el rango de las 40 empresas de la encuesta.")
 
-    with st.container(border=True): #CAMBIEEEEEEEEEEEEEEEEEEEEEEEE
+    with st.container(border=True):
         plantilla = st.number_input(
             "Plantilla operativa (personas)", min_value=0, value=500, step=10, key=_K + "plantilla"
         )
@@ -258,7 +258,7 @@ def _render_mi_empresa(empresas: pd.DataFrame) -> dict | None:
                     key=_K + col,
                 )
                 capturadas[col] = valor
-        enviado = st.button("Usar mi empresa", key=_K + "usar") ##CAMBIEEEEEEEEEEEEEEE
+        enviado = st.button("Usar mi empresa", key=_K + "usar")
 
     if enviado:
         datos = {"plantilla_op": plantilla, "rot_mensual_pct": rot_mensual, "palancas": capturadas}
