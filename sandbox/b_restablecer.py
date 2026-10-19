@@ -24,6 +24,7 @@ No modifica ningún archivo del equipo.
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ui.tema import aplicar_estilos
 
