@@ -1,8 +1,10 @@
 """Pruebas del selector de empresa (sin abrir la pantalla). Dueño: Juanes."""
 import math
+from pathlib import Path
 
 import pandas as pd
 import pytest
+from streamlit.testing.v1 import AppTest
 
 from config import PALANCAS
 from contrato.modelo import Empresa
@@ -103,3 +105,37 @@ def test_las_40_empresas_cumplen_el_contrato():
     empresas = cargar()
     for empresa_id in ids_ordenados(empresas):
         Empresa.model_validate(perfil_demo(empresas, empresa_id))
+
+
+def test_mi_empresa_se_envia_y_muestra_el_comparativo():
+    app = Path(__file__).resolve().parents[1] / "app.py"
+    at = AppTest.from_file(app, default_timeout=30).run()
+    at.radio[0].set_value("Mi empresa").run()
+
+    valores = [800, 4.3, 330, 22, 50, 10, 3]
+    assert len(at.number_input) == len(valores)
+    for campo, valor in zip(at.number_input, valores):
+        campo.set_value(valor)
+    at.run()
+
+    next(boton for boton in at.button if boton.label == "Usar mi empresa").click().run()
+
+    assert not at.exception
+    assert not at.info
+    assert any("Comparando con 40 empresas reales" in item.value for item in at.markdown)
+
+
+def test_botones_mas_y_menos_actualizan_las_palancas():
+    app = Path(__file__).resolve().parents[1] / "app.py"
+    at = AppTest.from_file(app, default_timeout=30).run()
+    valor_inicial = next(slider.value for slider in at.slider if slider.key == "valor_aguinaldo_op")
+
+    next(boton for boton in at.button if boton.key == "mas_aguinaldo_op").click().run()
+    valor_mayor = next(slider.value for slider in at.slider if slider.key == "valor_aguinaldo_op")
+    assert valor_mayor == valor_inicial + 1
+    assert any(item.value == '<div class="palanca-valor">16</div>' for item in at.markdown)
+
+    next(boton for boton in at.button if boton.key == "menos_aguinaldo_op").click().run()
+    valor_final = next(slider.value for slider in at.slider if slider.key == "valor_aguinaldo_op")
+    assert valor_final == valor_inicial
+    assert any(item.value == '<div class="palanca-valor">15</div>' for item in at.markdown)
