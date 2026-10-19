@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 import config
 from ia.cache import cargar, guardar, llave
 from ia.explicar import explicar
+from ia.validador import es_valido
 
 LIMITE_PRECALCULO_SEG = 15  # aquí no hay público esperando: se le da más tiempo a la IA que en vivo
 LIMITE_TOTAL_PRECALCULO_SEG = 30
@@ -19,7 +20,10 @@ def precalcular(estados, cliente=None, ruta=None, rehacer=False):
 
     Solo se guardan textos de la IA que pasaron el validador (fuente "llm"): si la IA
     falla o inventa una cifra, ese estado queda fuera y en vivo saldrá la plantilla.
-    Con rehacer=False no se vuelven a pedir los que ya están (ahorra tiempo y crédito).
+    Con rehacer=False no se vuelven a pedir los que ya están (ahorra tiempo y crédito),
+    salvo los que ya no pasan el validador: si el motor cambió una cifra después de
+    generarlos, en vivo saldría la plantilla, así que se piden de nuevo. Un texto editado
+    a mano que sigue siendo válido se conserva.
 
     Devuelve un resumen: {"guardadas": [...], "ya_estaban": [...], "fallidas": [...]}.
     """
@@ -28,7 +32,9 @@ def precalcular(estados, cliente=None, ruta=None, rehacer=False):
     anterior = None
     for estado in estados:
         clave = llave(estado, anterior)
-        if clave in cache and not rehacer:
+        guardado = cache.get(clave)
+        vigente = guardado is not None and es_valido(guardado["texto"], estado, anterior)
+        if vigente and not rehacer:
             resumen["ya_estaban"].append(clave)
         else:
             copia = copy.deepcopy(estado)  # explicar escribe en estado["explicacion"]; el original no se toca
@@ -46,6 +52,7 @@ def precalcular(estados, cliente=None, ruta=None, rehacer=False):
                 }
                 resumen["guardadas"].append(clave)
             else:
+                cache.pop(clave, None)  # un texto vencido no se deja: en vivo saldría la plantilla igual
                 resumen["fallidas"].append(clave)
         anterior = estado
     guardar(cache, ruta)
