@@ -21,6 +21,25 @@ _FIN = object()  # marca que el flujo terminó bien
 TEXTO_EMERGENCIA = "La explicación no está disponible en este momento; las cifras de la pantalla siguen siendo válidas."
 
 
+VALORES_ENCENDIDO = {"1", "si", "sí", "true", "on"}
+
+
+def modo_demo():
+    """True si el interruptor de emergencia MODO_DEMO está encendido.
+
+    Con MODO_DEMO encendido la app NUNCA llama a la API: la explicación sale del caché o,
+    si el paso no está en el caché, de la plantilla. Se usa si el día de la demo el wifi
+    falla o la API va lenta en la prueba previa. Por defecto está apagado: la IA responde
+    en vivo las combinaciones que no están en el caché.
+
+    Se enciende con la variable de entorno MODO_DEMO=1, sin tocar el código:
+      - En la laptop: doble clic en scripts/demo_sin_internet.bat (o .sh en Git Bash).
+      - En Streamlit Cloud: la línea MODO_DEMO = "1" en Settings → Secrets.
+    Se lee en cada explicación (no al arrancar), así que las pruebas lo pueden cambiar.
+    """
+    return os.environ.get("MODO_DEMO", "").strip().lower() in VALORES_ENCENDIDO
+
+
 def _cliente_real():
     """Cliente de Anthropic. La llave sale del entorno o de .streamlit/secrets.toml."""
     llave = os.environ.get("ANTHROPIC_API_KEY")
@@ -144,10 +163,13 @@ def _texto_aprobado(estado, anterior, cliente, limite, limite_total, latido, mod
     2. IA en vivo: solo si responde a tiempo, todas sus cifras están en los datos y no
        insinúa causa ni olvida advertir una señal no concluyente (ia/reglas.py).
     3. Plantilla: en cualquier otro caso (sin internet, lenta, error o cifra inventada).
+    Con MODO_DEMO encendido se salta el paso 2: caché o plantilla, sin esperar a la API.
     """
     guardado = buscar(estado, anterior, cache)
     if guardado:
         return "cache", guardado
+    if modo_demo():
+        return "plantilla", _plantilla_segura(estado)
     try:
         texto = _pedir_a_la_ia(estado, anterior, cliente, limite, limite_total, latido, modelo)
         if not texto:
