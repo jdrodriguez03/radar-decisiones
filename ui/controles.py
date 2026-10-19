@@ -2,6 +2,7 @@ import math
 import time
 
 import streamlit as st
+from streamlit.errors import StreamlitAPIException
 
 EPS = 1e-9
 DEPURAR = False
@@ -63,6 +64,7 @@ def _rango(cfg, real):
     n_abajo = int((real - piso + EPS) // p)
     n_arriba = int((techo - real + EPS) // p)
     lo, hi = round(real - n_abajo * p, 6), round(real + n_arriba * p, 6)
+    lo, hi = min(lo, real), max(hi, real)  # al redondear, un límite podía quedar del lado equivocado del valor
     if hi <= lo:
         hi = round(lo + p, 6)
     return lo, hi
@@ -78,7 +80,7 @@ def _iniciar(perfil):
     palancas = perfil["palancas"]
     firma = (perfil["id"], str(sorted((c, palancas.get(c)) for c in CONTROLES)))
     if st.session_state.get("_firma_perfil") != firma:
-        reales = {c: float(palancas[c]) for c in CONTROLES if not _falta(palancas.get(c))}
+        reales = {c: round(float(palancas[c]), 6) for c in CONTROLES if not _falta(palancas.get(c))}
         st.session_state["_reales"] = reales
         st.session_state["_sin_dato"] = [c for c in CONTROLES if c not in reales]
         st.session_state["_rangos"] = {c: _rango(CONTROLES[c], v) for c, v in reales.items()}
@@ -171,13 +173,19 @@ def render(perfil, con_guardar=False):
                            help=f"Bajar {cfg['paso_txt']}")
             c_mas.button("+", key=f"mas_{clave}", on_click=_paso, args=(clave, 1), width="stretch",
                          help=f"Subir {cfg['paso_txt']}")
-            c_slider.slider(
-                cfg["nombre"], min_value=lo, max_value=hi, step=cfg["paso"],
-                format=cfg["slider"], key=_k(clave), label_visibility="collapsed",
-                on_change=_registrar, args=(clave,),
-            )
+
+            try:
+                c_slider.slider(
+                    cfg["nombre"], min_value=lo, max_value=hi, step=cfg["paso"],
+                    format=cfg["slider"], key=_k(clave), label_visibility="collapsed",
+                    on_change=_registrar, args=(clave,),
+                )
+                fallo_slider = False
+            except StreamlitAPIException as error:
+                _log(f"slider {clave} no se dibujó: {error}")
+                fallo_slider = True
             real = st.session_state["_reales"][clave]
-            if real < cfg["min"] - EPS or real > cfg["max"] + EPS:
+            if fallo_slider or real < cfg["min"] - EPS or real > cfg["max"] + EPS:
                 st.markdown(
                     f'<div class="palanca-aviso">Su valor ({cfg["fmt"](real)}) está fuera del rango de la encuesta '
                     f'({cfg["fmt"](cfg["min"])} a {cfg["fmt"](cfg["max"])}).</div>',
