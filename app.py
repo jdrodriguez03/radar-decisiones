@@ -24,8 +24,8 @@ LIMITE_MS = 300
 USAR_FRAGMENTO = True
 
 EXTRAS = {
-    "escenarios": False,
-    "historial": False,
+    "escenarios": True,
+    "historial": True,
     "tamano_parecido": True,
     "semaforo": True,
 }
