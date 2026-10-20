@@ -61,7 +61,12 @@ Solo el perfil, sin nombres (el repositorio lo ven todos).
 | Clave | Perfil (sin nombre) | ¿Usa Excel o tableros en su trabajo? | Fecha y duración |
 |---|---|---|---|
 | P1 | Asistente de gerencia para una empresa de publicidad | Si, frecuentemente | 18/10/26 -  |
-| P2 |  |  |  |
+| P2 | Por completar | Por completar | Por completar |
+
+**Cómo se recogieron las notas:** lo que está abajo viene de lo que cada persona comentó y de lo que se
+observó durante la prueba. No se anotaron el minuto exacto ni todas las frases textuales; la única frase
+textual es la de P2 sobre la situación actual. Si quien condujo recuerda el minuto o la frase exacta de
+algún tropiezo, se agrega en la columna «Qué pasó». Falta completar la duración de P1 y el perfil de P2.
 
 ---
 
@@ -103,6 +108,11 @@ es **un solo renglón** con `P1, P2` (y eso la hace más urgente dentro de su gr
 <!-- fricciones:inicio -->
 | # | Gravedad | Tarea | Dónde (parte de la pantalla) | Qué pasó (hechos y frase textual) | Quién | Dueño | Arreglo propuesto |
 |---|---|---|---|---|---|---|---|
+| 1 | grave | T3 | Botón ⚙ de supuestos | Las dos personas dijeron que no es evidente que en ese botón se modifican los supuestos. P1 además lo confundió con el semáforo y no entendió bien para qué sirve. | P1, P2 | Juanes | Que el botón diga con palabras «⚙ Supuestos» y, junto a la brecha, la línea fija en ámbar «Supuesto: $15,000 por baja · editable en ⚙» (ya planeada para el día 13, crítica 3). |
+| 2 | grave | T2 | Semáforo de evidencia (señal) | P1 necesitó que le explicaran qué significan las señales (clara, débil, no concluyente) para entender lo que veía. | P1 | Julian | Debajo de la barra, una línea fija que diga qué mide: «Qué tan sólida es la comparación: clara, débil o no concluyente». |
+| 3 | grave | T2 | Las dos cifras en pesos (centro) | P1 dijo que no le quedó claro qué son el costo anual de la brecha y el costo anual de la medida. | P1 | Gaby | Etiquetas en palabras de negocio: «Lo que cuesta la medida al año» y «Lo que cuesta rotar más que el grupo, al año». |
+| 4 | grave | Exploración libre | Costo de la medida (centro) | P2 dijo que no entiende por qué el costo de la medida sale con precio negativo (pasa cuando se baja una palanca por debajo de su valor real, como en el caso E5). | P2 | Gaby | Si el costo sale negativo, mostrarlo como «Ahorro de $5.1 M al año» en lugar de «−$5.1 M». |
+| 5 | leve | T1 | Encabezado de la empresa | P2 dijo que entendió bien la pantalla, pero sugirió: «Sería bueno que se viera el número de operadores por empresa y que se aclare la situación actual». | P2 | Gaby | Un recuadro «Situación actual» arriba: operativos, rotación anual frente a la típica de las 40 y los valores reales de las palancas (por ejemplo, 1,438 operativos · 52% contra 37% · aguinaldo 15 días · prima 25%). |
 <!-- fricciones:fin -->
 
 ---
@@ -113,13 +123,46 @@ Se marca con lo que **dijeron** en la tarea T2 y en las preguntas finales.
 
 | Mensaje que la demo debe transmitir | P1 | P2 |
 |---|---|---|
-| Las cifras vienen de **empresas reales** que ya dan ese aguinaldo |  |  |
-| Es una **comparación**, no una predicción |  |  |
-| El grupo (22 empresas) rota **menos** que el resto (22% contra 53%) |  |  |
-| La medida cuesta **menos** que la brecha ($2.3 M contra $6.3 M) |  |  |
-| El costo por baja es un **supuesto** que el directivo puede cambiar |  |  |
+| Las cifras vienen de **empresas reales** que ya dan ese aguinaldo | Sin dato | Sin dato |
+| Es una **comparación**, no una predicción | Sin dato | Sin dato |
+| El grupo (22 empresas) rota **menos** que el resto (22% contra 53%) | Sin dato | Sí (dijo que la pantalla se entiende bien) |
+| La medida cuesta **menos** que la brecha ($2.3 M contra $6.3 M) | **No** (no le quedaron claras las dos cifras en pesos) | Parcial (no entendió el costo negativo) |
+| El costo por baja es un **supuesto** que el directivo puede cambiar | **No** (confundió el botón ⚙ con el semáforo) | Parcial (dijo que el botón no deja ver que ahí están los supuestos) |
+
+«Sin dato» significa que la persona no lo comentó y nadie se lo preguntó; no quiere decir que no lo
+entendió. Para la próxima prueba conviene hacer siempre las tres preguntas finales.
+
+**Los dos mensajes de negocio no los entendió del todo ninguna de las dos personas:** que la medida
+cuesta menos que la brecha y que el costo por baja es un supuesto editable. Por eso las fricciones 1,
+3 y 4 son **graves**: la regla de esta sección dice que un mensaje que nadie entendió se anota como
+grave.
 
 Si un mensaje no lo entendió ninguno de los dos, se agrega como fricción **grave** en la sección 3.
+
+---
+
+## 4.1 Resumen y qué se corrige primero
+
+**Lo que funcionó:** P2 entendió la pantalla en general y dijo que todo estaba claro. La forma de la
+pantalla no es el problema.
+
+**Lo que no funcionó:** las tres cosas que hacen útil la herramienta para un directivo no se entienden
+solas:
+
+1. **Que los supuestos se pueden cambiar** (fricción 1, las dos personas). Es la más urgente porque le
+   pasó a las dos y porque el jurado va a ver el cambio del costo por baja en el video.
+2. **Qué significa la señal** (fricción 2). Sin eso, «débil» y «no concluyente» no dicen nada.
+3. **Qué son las dos cifras en pesos y por qué una puede ser negativa** (fricciones 3 y 4). Son el
+   argumento de negocio de toda la presentación.
+
+**Qué se puede corregir sin romper el congelamiento:** las fricciones 1 a 4 son correcciones de texto
+en pantalla (etiquetas y una línea de ayuda), no funciones nuevas. La 5 (recuadro de situación actual)
+sí agrega un elemento; si no da tiempo, se cubre en la presentación, porque Juanes y Aleja ya dicen los
+operativos y la rotación de la empresa en los bloques 1 y 2 del guion.
+
+**Qué cambia en la presentación mientras se corrigen:** en el bloque 3 del guion, Gaby explica las tres
+partes de la pantalla. Conviene que diga con claridad qué significa la etiqueta de evidencia y qué son
+las dos cifras en pesos, porque es justo lo que estas personas no entendieron solas.
 
 ---
 
