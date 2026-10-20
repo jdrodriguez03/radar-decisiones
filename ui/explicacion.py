@@ -1,5 +1,7 @@
 """Panel derecho: explicación de la IA, señal y n. Dueño: Julian."""
+import hashlib
 import itertools
+import json
 
 import streamlit as st
 
@@ -194,3 +196,84 @@ def semaforo(contenedor, estado):
     dibujar_direccion(contenedor, estado)
     dibujar_solidez(contenedor, estado)
     dibujar_pesos(contenedor, estado)
+
+
+# --- Resumen descargable (crítica 4 del jurado) ---
+
+ETIQUETA_RESUMEN = "Descargar resumen (PDF)"
+AYUDA_RESUMEN = (
+    "Baja un PDF para el comité con los escenarios guardados de esta empresa: cifras, solidez, "
+    "costos y explicación. Si no ha guardado ninguno, lleva el que está en pantalla."
+)
+
+
+def _texto_vigente(estado, explicado):
+    """La explicación de lo que está en pantalla, o None si falta pulsar Explicar."""
+    if falta_explicar(estado, explicado):
+        return None
+    return ((explicado or {}).get("explicacion") or {}).get("texto")
+
+
+def _pdf_seguro(estado, guardados, texto, fecha):
+    """Arma el PDF. Si algo falla, devuelve un PDF con un aviso en vez de un archivo roto: nunca se cae la app."""
+    from ia.resumen import armar_pdf, pdf_de_aviso
+
+    try:
+        return armar_pdf(estado, guardados, texto, fecha)[0]
+    except Exception:  # noqa: BLE001  la descarga no puede tumbar la demo
+        return pdf_de_aviso()
+
+
+def pdf_en_memoria(memoria, escenarios, estado, guardados, texto, fecha):
+    """El PDF ya armado, que se rehace solo cuando cambian los escenarios, la explicación o el día.
+
+    El PDF se arma ANTES de dibujar el botón (no al pulsarlo): así la descarga no depende de que
+    Streamlit conserve una función pendiente entre recargas, que fue lo que falló en el sandbox
+    ("Deferred file ... not found"). Guardarlo en `memoria` evita rearmarlo con cada movimiento.
+    """
+    huella = json.dumps([escenarios, texto, f"{fecha:%Y-%m-%d}"], sort_keys=True, default=str, ensure_ascii=False)
+    clave = hashlib.sha1(huella.encode("utf-8")).hexdigest()
+    if memoria.get("clave") != clave:
+        memoria["clave"], memoria["pdf"] = clave, _pdf_seguro(estado, guardados, texto, fecha)
+    return memoria["pdf"]
+
+
+def boton_resumen(contenedor, estado, guardados, explicado=None):
+    """Dibuja «Descargar resumen (PDF)» con cuántos escenarios lleva. Devuelve True si se dibujó.
+
+    - guardados: la lista de st.session_state["escenarios_guardados"] (la llena «Guardar escenario»).
+    - explicado: el último estado explicado; su texto entra solo si sigue al día.
+    Si la librería del PDF (fpdf2) no está instalada, no dibuja nada y la app sigue igual.
+    """
+    try:
+        import fpdf  # noqa: F401  solo para saber si está instalada
+
+        from ia.resumen import escenarios_para_resumen, nombre_archivo
+    except ImportError:
+        return False
+    from datetime import datetime
+
+    fecha = datetime.now().astimezone()
+    texto = _texto_vigente(estado, explicado)
+    guardados = list(guardados or [])
+    escenarios = escenarios_para_resumen(estado, guardados, texto)
+    total = len(escenarios)
+    empresa = (estado.get("empresa") or {}).get("id")
+    de_esta = sum(1 for g in guardados if ((g.get("estado") or {}).get("empresa") or {}).get("id") == empresa)
+    etiqueta = f"{ETIQUETA_RESUMEN} · {total} escenario{'' if total == 1 else 's'}"
+    if total < de_esta:  # guardó el mismo escenario más de una vez: que no parezca que se perdió alguno
+        etiqueta += " sin repetir"
+    memoria = st.session_state.setdefault("_resumen_pdf", {})
+    datos = pdf_en_memoria(memoria, escenarios, estado, guardados, texto, fecha)
+    with contenedor:
+        st.download_button(
+            etiqueta,
+            data=datos,
+            file_name=nombre_archivo(estado, fecha),
+            mime="application/pdf",
+            key="btn_resumen",
+            help=AYUDA_RESUMEN,
+            on_click="ignore",
+            width="stretch",
+        )
+    return True

@@ -37,10 +37,18 @@ Siempre desde la raíz del repositorio, con el entorno `.venv` activo:
 | --- | --- |
 | `streamlit run app.py` | Abre la app |
 | `bash scripts/demo_sin_internet.sh` (o doble clic en `scripts\demo_sin_internet.bat`) | Abre la app en MODO_DEMO: nunca llama a la API, solo caché o plantilla. Para cuando falla el wifi |
+| `streamlit run sandbox/c_resumen.py` | Prueba el PDF para el comité con los pasos del caché, sin abrir la app completa |
 | `pytest` | Corre las pruebas |
 | `ruff check .` | Revisa el estilo |
 
 `pytest` y `ruff check .` también corren solos en cada PR (CI). Si salen en rojo, el PR no se puede aprobar.
+
+**Resumen para el comité (PDF):** en la app, guarde los escenarios con «Guardar escenario» y pulse
+«Descargar resumen (PDF)». Baja un informe tamaño carta para el comité: situación actual de la
+compañía, tabla de escenarios y detalle de cada uno. Se genera en el mismo computador, sin internet ni
+IA, y cada cifra pasa por el validador antes de imprimirse. El estilo (colores, letras, textos fijos) está
+en el bloque «Estilo del informe» de `ia/resumen.py`. Usa la librería `fpdf2`; si después de un
+`git pull` el botón no aparece, corra `pip install -r requirements.txt`.
 
 ## Los datos
 

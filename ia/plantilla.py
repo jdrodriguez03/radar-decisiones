@@ -88,9 +88,33 @@ def _aviso_o_rasgo(estado):
     return ""  # un rasgo que no se sabe decir bien se omite: mejor dos oraciones claras que tres raras
 
 
+def sin_comparacion(estado):
+    """True si se movió una palanca pero no queda «resto»: todas las empresas con dato ya la cumplen.
+
+    Pasa al bajar una palanca hasta un nivel que todas tienen (por ejemplo, aguinaldo a 15 días).
+    Sin resto no hay diferencia que explicar: ni la plantilla normal ni la IA tienen con qué trabajar.
+    """
+    if not estado.get("cambio") or not estado.get("palancas_movidas"):
+        return False
+    resto = estado.get("resto") or {}
+    return not resto.get("n") or (resto.get("indicadores") or {}).get("rot_anual") is None
+
+
+def _plantilla_sin_comparacion(estado):
+    """Dice la razón real (no hay con quién comparar) en vez de un mensaje de falla."""
+    movidas = estado["palancas_movidas"]
+    palancas = _en_lista([f"{nombre_palanca(p, v)} o más" for p, v in movidas.items()])
+    return (
+        f"Las {estado['grupo']['n']} empresas con dato ya tienen {palancas}; por eso no queda un grupo "
+        "con el cual comparar. Para ver una diferencia, pruebe con un nivel superior al actual de su empresa."
+    )
+
+
 def plantilla(estado):
     if not estado.get("cambio"):
         return _plantilla_inicial(estado)
+    if sin_comparacion(estado):
+        return _plantilla_sin_comparacion(estado)
     grupo = estado["grupo"]
     resto = estado["resto"]
     pesos = estado["pesos"]

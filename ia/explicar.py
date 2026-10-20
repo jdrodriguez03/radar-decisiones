@@ -10,7 +10,7 @@ import anthropic
 
 import config
 from ia.cache import buscar
-from ia.plantilla import plantilla
+from ia.plantilla import plantilla, sin_comparacion
 from ia.prompts import PROMPT_SISTEMA, armar_mensaje, pulir
 from ia.reglas import fallas_graves
 from ia.validador import es_valido
@@ -168,7 +168,7 @@ def _texto_aprobado(estado, anterior, cliente, limite, limite_total, latido, mod
     guardado = buscar(estado, anterior, cache)
     if guardado:
         return "cache", guardado
-    if modo_demo():
+    if modo_demo() or sin_comparacion(estado):  # sin resto no hay nada que pedirle a la IA
         return "plantilla", _plantilla_segura(estado)
     try:
         texto = _pedir_a_la_ia(estado, anterior, cliente, limite, limite_total, latido, modelo)
