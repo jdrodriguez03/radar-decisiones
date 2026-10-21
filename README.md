@@ -112,6 +112,10 @@ ruff check .
 
 Ninguna prueba llama a la API. Las dos corren en GitHub Actions con cada pull request y con cada cambio en `main`.
 
+## Historial de desarrollo
+
+El proyecto se construyó en quince días con ramas por integrante, pull requests revisados por el equipo y pruebas automáticas en cada cambio. Este repositorio es la copia pública del repositorio de trabajo: conserva todos los commits con sus fechas y autores, y los 32 pull requests están reunidos en [`docs/pull_requests.md`](docs/pull_requests.md), porque GitHub no los copia junto con el historial.
+
 ## Equipo
 
 | Integrante | Rol |
