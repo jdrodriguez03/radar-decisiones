@@ -152,8 +152,8 @@ def test_la_tabla_del_guion_dice_lo_mismo_que_la_app(caso):
     assert filas[2][2:] == ["5 / 33", "12% vs 38%", "No concluyente", "$17.6 M", "$8.5 M"]
     assert [f["color"] for f in datos["filas"]] == ["verde", "amarillo", "naranja"]
     assert datos["detalles"][0]["cifras"] == [
-        ("Empresas: grupo / resto", "22 / 16"), ("Rotación: grupo / resto", "22% / 53%"),
-        ("Costo anual de la medida", "$2.3 M"), ("Brecha anual por rotación", "$6.3 M"),
+        ("Empresas: con / sin la medida", "22 / 16"), ("Rotación: con / sin la medida", "22% / 53%"),
+        ("Costo anual de la medida", "$2.3 M"), ("Costo anual de la brecha", "$6.3 M"),
     ]
 
 
@@ -182,7 +182,7 @@ def test_el_grupo_completado_lleva_su_aviso(caso, empresas):
     estado = con_palancas(caso("G1"), empresas, {"sal_dia_ini": 380})  # E1
     datos = contenido(escenarios_para_resumen(estado, [guardado(estado)]), FECHA)
     assert datos["filas"][0]["celdas"][2].endswith(" *")
-    assert "grupo completado" in datos["detalles"][0]["solidez"]
+    assert "completado con similares" in datos["detalles"][0]["solidez"]
     # La interpretación del caché ya lo advierte: no se repite en las consideraciones
     sin_texto = contenido(escenarios_para_resumen(estado, [guardado(estado, con_cache=False)]), FECHA)
     assert ("", AVISO_COMPLETADO) in sin_texto["detalles"][0]["consideraciones"]
@@ -192,10 +192,10 @@ def test_ahorro_y_brecha_cero_se_escriben_claro(caso, empresas):
     ahorro = con_palancas(caso("G1"), empresas, {"vales_op": 0.06})
     sin_brecha = con_palancas(caso("G1"), empresas, {"rutas_x100": 10.8})
     datos = contenido(escenarios_para_resumen(ahorro, [guardado(ahorro), guardado(sin_brecha)]), FECHA)
-    assert datos["filas"][0]["celdas"][5] == "($5.1 M)"
+    assert datos["filas"][0]["celdas"][5] == "Ahorro $5.1 M"
     assert dict(datos["detalles"][0]["cifras"])["Costo anual de la medida"] == "Ahorro de $5.1 M"
     assert datos["filas"][1]["celdas"][6] == "-"
-    assert dict(datos["detalles"][1]["cifras"])["Brecha anual por rotación"] == "Sin brecha"
+    assert dict(datos["detalles"][1]["cifras"])["Costo anual de la brecha"] == "Sin brecha"
 
 
 # ---------------------------------------------------------------------------
@@ -348,12 +348,12 @@ def test_si_una_cifra_no_estuviera_en_los_datos_no_se_imprime(caso):
     escenarios = escenarios_para_resumen(g1, [guardado(g1)])
     datos = contenido(escenarios, FECHA)
     datos["filas"][0]["celdas"][3] = "97% vs 53%"  # 97 no sale del estado
-    datos["detalles"][0]["cifras"][1] = ("Rotación: grupo / resto", "97% / 53%")
+    datos["detalles"][0]["cifras"][1] = ("Rotación: con / sin la medida", "97% / 53%")
     datos["detalles"][0]["consideraciones"].append(("", "Dato inventado: 777 empresas."))
     datos["situacion"][0] = ("Plantilla operativa", "9,999 personas")
     seguro = asegurar_cifras(datos, escenarios)
     assert seguro["filas"][0]["celdas"][3] == SIN_DATO
-    assert seguro["detalles"][0]["cifras"][1] == ("Rotación: grupo / resto", SIN_DATO)
+    assert seguro["detalles"][0]["cifras"][1] == ("Rotación: con / sin la medida", SIN_DATO)
     assert seguro["detalles"][0]["consideraciones"][-1] == ("", SIN_DATO)
     assert seguro["situacion"][0] == ("Plantilla operativa", SIN_DATO)
     assert seguro["filas"][0]["celdas"][2] == "22 / 16"  # lo correcto no se toca
@@ -493,9 +493,9 @@ def test_las_diferencias_no_se_presentan_como_algo_en_comun(caso):
     g3 = caso("G3")
     datos = contenido(escenarios_para_resumen(g3, [guardado(g3)]), FECHA)
     lineas = [texto for _, texto in datos["detalles"][0]["consideraciones"]]
-    assert "Diferencia con el resto: manejan jornadas de 12 horas (0 de 5 en el grupo, frente a 13 de 33 en el resto)." in lineas
-    assert ("Diferencia con el resto: motivo de baja por cuidado de hijos o familiares (10% en el grupo, "
-            "frente a 50% en el resto).") in lineas
+    assert "Diferencia con las empresas sin la medida: manejan jornadas de 12 horas (0 de 5 con la medida, frente a 13 de 33 sin ella)." in lineas
+    assert ("Diferencia con las empresas sin la medida: motivo de baja por cuidado de hijos o familiares (10% con la medida, "
+            "frente a 50% sin ella).") in lineas
     todo = " ".join(lineas).lower()
     assert "en común" not in todo and "común del grupo" not in todo
-    assert ": " not in " ".join(linea.removeprefix("Diferencia con el resto: ") for linea in lineas)  # sin dos puntos dobles
+    assert ": " not in " ".join(linea.removeprefix("Diferencia con las empresas sin la medida: ") for linea in lineas)  # sin dos puntos dobles

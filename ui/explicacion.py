@@ -32,7 +32,7 @@ def pie(estado):
         return f"Comparado con las {n} empresas de la encuesta"
     texto = f"Señal {etiqueta} · {n} empresas que ya lo hacen"
     if grupo.get("completado"):
-        texto += " · grupo completado con empresas similares"
+        texto += " · completado con empresas similares"
     return texto
 
 
