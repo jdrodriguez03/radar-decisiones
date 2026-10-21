@@ -58,10 +58,6 @@ def motor_ia_falso(datos, palancas_movidas):
     return (datos.get("explicacion") or {}).get("texto")
 
 
-def _alternar_palanca():
-    st.session_state["_ver_palanca"] = not st.session_state.get("_ver_palanca", False)
-
-
 @st.fragment
 def panel(perfil):
     """Controles + panel central. Al mover una palanca solo se vuelve a correr esta función."""
@@ -69,7 +65,7 @@ def panel(perfil):
 
     with col_izq:
         st.markdown('<div class="titulo-col">Palancas</div>', unsafe_allow_html=True)
-        palancas_movidas, cambio = render(perfil)
+        palancas_movidas, _ = render(perfil)
 
     datos = motor_falso(palancas_movidas)
     firma = _firma(palancas_movidas)
@@ -94,20 +90,6 @@ def panel(perfil):
 
         comparativo.cifras_pesos(datos)
 
-        ver = st.session_state.get("_ver_palanca", False)
-        st.button(
-            "Ocultar gráfica por palanca" if ver else "Ver gráfica por palanca",
-            on_click=_alternar_palanca, key="btn_palanca",
-        )
-        if ver:
-            if RUTA_EMPRESAS.exists():
-                palanca_x = cambio["palanca"] if cambio else "sal_dia_ini"
-                valor_x = palancas_movidas.get(palanca_x, perfil["palancas"][palanca_x])
-                comparativo.dispersion(
-                    datos, comparativo.cargar_empresas(RUTA_EMPRESAS), palanca_x, valor_x
-                )
-            else:
-                st.warning(f"No encuentro {RUTA_EMPRESAS}")
         st.caption(f"Fixture en pantalla: {datos['_archivo']}")
 
     with col_der:
@@ -148,4 +130,4 @@ def panel(perfil):
 
 
 base = _cargar("05")
-panel(base["empresa"])
+panel(base["empresa"])
