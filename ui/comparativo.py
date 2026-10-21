@@ -13,14 +13,6 @@ COL_Y = "rot_anual"
 
 EPS = 1e-9
 
-FORMATO_X = {
-    "sal_dia_ini": "$,.0f",
-    "aguinaldo_op": ".0f",
-    "prima_vac_op": ".0%",
-    "vales_op": ".1%",
-    "rutas_x100": ".1f",
-}
-
 NOMBRES_INDICADORES = {
     "rot_anual": "Rotación Anual",
     "rot_temprana": "Rotación Temprana",
@@ -54,11 +46,21 @@ def cifras_pesos(datos, columnas=None):
 
     Los costos de la medida y de la brecha son aritmética sobre lo observado y el perfil: calculado (gris).
     El costo por baja es un valor editable por el directivo: supuesto (ámbar).
+    Un costo negativo es un ahorro: en lugar de «$-1.234.567» se muestra el título «Ahorro» y la cifra sin signo.
     """
     izq, der = columnas or st.columns(2)
-    for col, clave in zip((izq, der), ("costo_medida_anual", "costo_brecha_anual")):
+    claves = ("costo_medida_anual", "costo_brecha_anual")
+    hay_ahorro = any(datos["pesos"][c] < 0 for c in claves)
+    for col, clave in zip((izq, der), claves):
+        valor = datos["pesos"][clave]
+        if valor < 0:
+            titulo = '<div class="peso-ahorro">Ahorro</div>'
+        elif hay_ahorro:
+            titulo = '<div class="peso-ahorro" style="visibility:hidden">Ahorro</div>'
+        else:
+            titulo = ""
         col.markdown(
-            f'<div class="peso">{procedencia.calculado(pesos(datos["pesos"][clave]))}</div>'
+            f'{titulo}<div class="peso">{procedencia.calculado(pesos(abs(valor)))}</div>'
             f'<div class="peso-etiqueta">{ETIQUETAS_PESOS[clave]}</div>',
             unsafe_allow_html=True,
         )
@@ -106,11 +108,12 @@ def render(datos):
             f'<td><span class="cifra-grande">{_fmt(res)}</span></td></tr>'
         )
     _html(
-        '<table class="tabla"><tr><th></th><th>Empresa</th><th>Grupo</th><th>Resto</th></tr>'
+        '<table class="tabla"><tr><th></th><th>Situación actual</th><th>Empresas con las medidas</th>'
+        "<th>Empresas sin las medidas</th></tr>"
         f"{filas}</table>"
     )
     if hay_mejor:
-        _html('<div class="texto-gris">▼ el grupo pierde menos que su empresa</div>')
+        _html('<div class="texto-gris">▼ las empresas con las medidas pierden menos que su empresa</div>')
 
 
 def mostrar_figura(fig, nombre_archivo):
@@ -164,70 +167,6 @@ def preparar_dispersion(datos, empresas, palancas=None):
     }
 
 
-def dispersion(datos, empresas, palanca_x, valor_x):
-    """Dispersión: eje X = palanca elegida, eje Y = rotación anual.
-
-    palanca_x: última palanca movida (o "sal_dia_ini" si no hay).
-    valor_x: nivel actual de esa palanca (línea punteada vertical).
-    Las líneas horizontales son la mediana de rotación anual del grupo y del resto.
-    """
-    grupos = preparar_dispersion(datos, empresas, palanca_x)
-    formato = FORMATO_X.get(palanca_x, ".2f")
-    hover = f"<b>%{{hovertext}}</b><br>X: %{{x:{formato}}}<br>Rotación anual: %{{y:.1%}}<extra></extra>"
-
-    fig = go.Figure()
-    capas = [
-        ("Grupo", {"size": 10, "color": ACENTO}, grupos["grupo"]),
-        ("Resto", {"size": 10, "color": GRIS}, grupos["resto"]),
-        ("Sin clasificar", {"size": 10, "color": "rgba(0,0,0,0)", "line": {"color": GRIS, "width": 1.5}},
-         grupos["otras"]),
-    ]
-    for nombre, marcador, df in capas:
-        if df.empty:
-            continue
-        fig.add_trace(go.Scatter(
-            x=df[palanca_x], y=df[COL_Y], mode="markers", name=nombre,
-            hovertext=df[COL_ID], hovertemplate=hover, marker=marcador,
-        ))
-
-    e = grupos["elegida"]
-    fig.add_trace(go.Scatter(
-        x=e[palanca_x], y=e[COL_Y], mode="markers", name=f"{e[COL_ID].iloc[0]} (elegida)",
-        hovertext=e[COL_ID], hovertemplate=hover,
-        marker={"size": 20, "symbol": "diamond", "color": TEXTO, "line": {"color": ACENTO, "width": 2}},
-    ))
-
-    if valor_x is not None:
-        fig.add_vline(x=valor_x, line_dash="dot", line_color=TEXTO)
-
-
-    medianas = [
-        ("grupo", ACENTO, grupos["grupo"][COL_Y].median(), "top right"),
-        ("resto", GRIS, grupos["resto"][COL_Y].median(), "bottom right"),
-    ]
-    for nombre, color, valor, posicion in medianas:
-        if pd.isna(valor):
-            continue
-        fig.add_hline(
-            y=valor, line_dash="dash", line_color=color,
-            annotation_text=f"Mediana {nombre}: {valor:.0%}",
-            annotation_position=posicion, annotation_font_color=color,
-        )
-
-    fig.update_layout(
-        height=380,
-        margin={"l": 10, "r": 10, "t": 10, "b": 10},
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font={"color": TEXTO, "family": "Nunito, sans-serif", "size": 14},
-        legend={"orientation": "h", "y": -0.2},
-        xaxis={"title": CONTROLES[palanca_x]["nombre"], "tickformat": formato,
-               "gridcolor": LINEA, "zeroline": False},
-        yaxis={"title": "Rotación anual", "tickformat": ".0%", "gridcolor": LINEA, "zeroline": False},
-    )
-    mostrar_figura(fig, "rotacion_por_palanca")
-
-
 def _base_layout(fig, altura):
     fig.update_layout(
         height=altura,
@@ -263,9 +202,9 @@ def distribucion_rotacion(datos, empresas, altura=None):
     e = grupos["elegida"]
     rot_e = float(e[COL_Y].iloc[0])
     nombre_e = str(e[COL_ID].iloc[0])
-    filas = [(f"Grupo ({len(grupos['grupo'])})", ACENTO, grupos["grupo"])]
+    filas = [(f"Con la medida ({len(grupos['grupo'])})", ACENTO, grupos["grupo"])]
     if not grupos["resto"].empty:
-        filas.append((f"Resto ({len(grupos['resto'])})", GRIS, grupos["resto"]))
+        filas.append((f"Sin la medida ({len(grupos['resto'])})", GRIS, grupos["resto"]))
     n = len(filas)
 
     def en_eje(v):
@@ -317,7 +256,8 @@ def distribucion_rotacion(datos, empresas, altura=None):
     _base_layout(fig, altura or 150 + 110 * n)
     fig.update_layout(showlegend=False, margin={"l": 10, "r": 10, "t": 10, "b": 10})
     fig.update_xaxes(range=[-0.03, X_BORDE + 0.07 if hay_fuera else 1.03], tickvals=valores_eje,
-                     ticktext=textos_eje, gridcolor=LINEA, zeroline=False, tickfont={"size": 15}, tickangle=0)
+                     ticktext=textos_eje, gridcolor=LINEA, zeroline=False, tickfont={"size": 15}, tickangle=0,
+                     title_text="Rotación Anual", title_font={"size": 16, "color": TEXTO}, automargin=True)
     fig.update_yaxes(range=[-0.7, n + 0.25], tickvals=[n - 1 - i for i in range(n)],
                      ticktext=[f[0] for f in filas], showgrid=False, zeroline=False,
                      fixedrange=True, tickfont={"size": 18})
@@ -362,7 +302,7 @@ def palancas_grupo(datos, empresas, niveles, altura=330):
 
     fig = go.Figure()
 
-    if hay_resto:  # línea que une grupo y resto en cada palanca: su largo es lo que los separa
+    if hay_resto:
         lx, ly = [], []
         for c, n in zip(claves, nombres):
             lx += [pos(c, med_grupo[c]), pos(c, med_resto[c]), None]
@@ -370,9 +310,9 @@ def palancas_grupo(datos, empresas, niveles, altura=330):
         fig.add_trace(go.Scatter(x=lx, y=ly, mode="lines", line={"color": LINEA, "width": 3},
                                  hoverinfo="skip", showlegend=False))
 
-    series = [puntos("Grupo (mediana)", med_grupo, ACENTO)]
+    series = [puntos("Con la medida (mediana)", med_grupo, ACENTO)]
     if hay_resto:
-        series.append(puntos("Resto (mediana)", med_resto, GRIS, "square"))
+        series.append(puntos("Sin la medida (mediana)", med_resto, GRIS, "square"))
     series.append(puntos("Empresa hoy", reales, TEXTO, "diamond", 17, ACENTO, con_dato))
     movidas = {c: v for c, v in niveles.items() if c in con_dato and abs(v - reales[c]) > EPS}
     # Escenarios fuera de lo observado: el percentil se queda en 0% o 100%, así que se avisa

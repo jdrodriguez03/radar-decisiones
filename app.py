@@ -19,7 +19,7 @@ from ui import (
 )
 from ui.tema import AMBAR, GRIS, aplicar_estilos
 
-MOSTRAR_TIEMPO = True
+MOSTRAR_TIEMPO = False
 LIMITE_MS = 300
 USAR_FRAGMENTO = True
 
@@ -32,10 +32,6 @@ EXTRAS = {
 
 st.set_page_config(layout="wide")
 aplicar_estilos()
-
-
-def _alternar_palanca():
-    st.session_state["_ver_palanca"] = not st.session_state.get("_ver_palanca", False)
 
 
 def _titulo(texto):
@@ -117,6 +113,7 @@ def _pantalla(empresas):
         aviso_tamano = st.empty()
         palancas_movidas, cambio, guardar = controles.render(perfil, con_guardar=True)
         nota_guardados = st.empty()
+        zona_resumen = st.container()  # «Descargar resumen»: se llena al final, cuando ya hay explicación
 
     n = perfil.get("plantilla_op")
     subtitulo.markdown(
@@ -130,10 +127,16 @@ def _pantalla(empresas):
         _titulo("Comparativo")
         zona_tabla = st.container()
         zona_pesos = st.container()
+        zona_supuestos = st.container()
         zona_extra = st.container()
     with zona_pesos:
-        c_medida, c_brecha, c_ajustes = st.columns([1, 1, 0.4], vertical_alignment="center")
-        with c_ajustes:
+        c_medida, c_brecha = st.columns(2, vertical_alignment="center")
+    with zona_supuestos:
+        # Título y ⚙ juntos y centrados, en línea con el texto ámbar del supuesto que queda justo encima
+        fila = st.container(horizontal=True, horizontal_alignment="center", vertical_alignment="center", gap="small")
+        with fila:
+            st.markdown('<div class="supuestos-titulo">Modificación de supuestos</div>', unsafe_allow_html=True,
+                        width="content")
             ajustes = supuestos.render()
 
     try:
@@ -154,30 +157,22 @@ def _pantalla(empresas):
     with zona_pesos:
         comparativo.cifras_pesos(estado, (c_medida, c_brecha))
     with zona_extra:
-        ver = st.session_state.get("_ver_palanca", False)
-        st.button(
-            "Ocultar gráfica por palanca" if ver else "Ver gráfica por palanca",
-            on_click=_alternar_palanca, key="btn_palanca",
-        )
-        if ver:
-            palanca_x = cambio["palanca"] if cambio else "sal_dia_ini"
-            valor_x = palancas_movidas.get(palanca_x, perfil["palancas"].get(palanca_x))
-            comparativo.dispersion(estado, empresas, palanca_x, valor_x)
         if EXTRAS["escenarios"]:
             comparativo.escenarios_ab(st.session_state.get(escenarios.CLAVE_ESCENARIOS, []), _limpiar_ab)
 
-    # Derecha: Explicar, explicación y, debajo, la rotación por grupo
+    # Derecha, en este orden: título, Explicar, explicación de la IA (o el aviso de que hay cambios sin explicar),
+    # la gráfica de rotación, el semáforo y el historial.
     with col_der:
         _titulo("Explicación")
         pulsado = st.button(
             "Explicar", type="primary", key="btn_explicar", width="stretch",
             disabled=not palancas_movidas, help="Mueve al menos una palanca y explica el escenario cuando esté listo.",
         )
-        if EXTRAS["semaforo"]:
-            explicacion.semaforo(st.container(), estado)
         contenedor = st.container()
         with st.container():
             comparativo.distribucion_rotacion(estado, empresas)
+        if EXTRAS["semaforo"]:
+            explicacion.semaforo(st.container(), estado)
         if pulsado:
             explicacion.render(contenedor, estado, explicado)
             st.session_state["estado_explicado"] = estado
@@ -190,6 +185,11 @@ def _pantalla(empresas):
                 explicacion.mostrar(contenedor, explicado)
         if EXTRAS["historial"]:
             historial.render(st.session_state.get("historial", []))
+
+   
+    explicacion.boton_resumen(
+        zona_resumen, estado, st.session_state.get("escenarios_guardados", []), st.session_state.get("estado_explicado"),
+    )
 
     if MOSTRAR_TIEMPO:
         t_click = st.session_state.pop("_t_click", None)

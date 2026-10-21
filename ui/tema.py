@@ -59,6 +59,10 @@ def aplicar_estilos():
         .stButton button {{ background: {SUPERFICIE}; border: 1px solid {LINEA}; border-radius: 16px;
                        color: {TEXTO}; font-style: italic; width: 100%; }}
         .stButton button:hover {{ border-color: {ACENTO}; color: {ACENTO}; }}
+        [data-testid="stDownloadButton"] button {{ background: {SUPERFICIE}; border: 1px solid {LINEA}; border-radius: 16px;
+                       color: {TEXTO}; font-style: italic; width: 100%; }}
+        [data-testid="stDownloadButton"] button p {{ font-size: 17px; }}
+        [data-testid="stDownloadButton"] button:hover {{ border-color: {ACENTO}; color: {ACENTO}; }}
 
         .palanca-nombre {{ font-size: 20px; color: {TEXTO}; white-space: nowrap; }}
         .palanca-valor {{ font-size: 20px; font-style: italic; color: {ACENTO}; text-align: right; white-space: nowrap; }}
@@ -79,7 +83,7 @@ def aplicar_estilos():
 
         /* tabla de indicadores */
         .tabla {{ width: 100%; border-collapse: collapse; border: 3px solid {LINEA}; }}
-        .tabla th {{ background: {SUPERFICIE}; color: {TEXTO}; font-size: 24px; font-weight: 700;
+        .tabla th {{ background: {SUPERFICIE}; color: {TEXTO}; font-size: clamp(17px, 1.3vw, 24px); font-weight: 700;
                      padding: 14px 6px; text-align: center; border: 2px solid {LINEA}; }}
         .tabla td {{ font-size: {TAM_TEXTO}; color: {TEXTO}; text-align: center; padding: 16px 8px;
                      border: 2px solid {LINEA}; background: {FONDO}; }}
@@ -100,10 +104,15 @@ def aplicar_estilos():
         .cifra-grande {{ font-size: 36px; font-weight: 700; color: {TEXTO}; }}
         .cifra-grande-acento {{ font-size: 36px; font-weight: 700; color: {ACENTO}; }}
 
+        .supuestos-titulo {{ font-size: 22px; font-weight: 600; color: {TEXTO}; margin: 0; white-space: nowrap; line-height: 1; }}
+        /* Streamlit baja cada texto con un margen de -16px; sin quitarlo, el título queda más abajo que el ⚙ */
+        [data-testid="stMarkdownContainer"]:has(> .supuestos-titulo) {{ margin-bottom: 0; }}
         .grafica-titulo {{ font-size: 20px; font-weight: 600; color: {TEXTO}; text-align: center; margin: 10px 0 2px; }}
 
         /* cifras en pesos */
         .peso {{ font-size: {TAM_CIFRA}; font-style: italic; letter-spacing: 1px; white-space: nowrap; color: {TEXTO}; text-align: center; }}
+        .peso-ahorro {{ font-size: {TAM_TEXTO}; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+                        color: {ACENTO}; text-align: center; margin-bottom: -6px; }}
         .peso-etiqueta {{ font-size: {TAM_TEXTO}; color: {GRIS}; text-align: center; }}
         .grafica {{ background: {FONDO}; border: 10px solid {SUPERFICIE}; height: 300px;
                     display: flex; align-items: center; justify-content: center; }}
