@@ -19,7 +19,7 @@ from ui import (
 )
 from ui.tema import AMBAR, GRIS, aplicar_estilos
 
-MOSTRAR_TIEMPO = True
+MOSTRAR_TIEMPO = False
 LIMITE_MS = 300
 USAR_FRAGMENTO = True
 
