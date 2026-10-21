@@ -4,6 +4,8 @@ Herramienta para que un directivo de recursos humanos pruebe una decisión de co
 
 Proyecto desarrollado para el concurso de Catch Consulting (México) con estudiantes de la Universidad Externado de Colombia, octubre de 2026.
 
+**Pruébala en línea:** [radar-decisiones.streamlit.app](https://radar-decisiones.streamlit.app). La versión publicada funciona sin llave de API: los escenarios de referencia muestran explicaciones escritas por la IA y revisadas, y cualquier otra combinación usa la explicación de plantilla, con las mismas cifras. Si la app estuvo un tiempo sin visitas, puede tardar unos segundos en despertar.
+
 ## Características
 
 - **Cinco palancas de compensación** (salario diario inicial, aguinaldo, prima vacacional, vales de despensa y rutas de transporte) que recalculan todo al instante.
