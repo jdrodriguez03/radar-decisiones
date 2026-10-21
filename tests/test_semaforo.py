@@ -37,7 +37,7 @@ def test_en_el_guion_rotan_menos(estado):
     assert direccion(estado("G1")) == {
         "rotan_mas": False,
         "titulo": "↓ Rotan menos",
-        "detalle": "22 empresas que lo hacen: 22% al año contra 53% del resto",
+        "detalle": "22 empresas que lo hacen: 22% al año contra 53% de las que no",
     }
 
 
@@ -95,7 +95,7 @@ def test_si_rotan_mas_la_etiqueta_lo_dice(estado, senal, etiqueta):
 def test_grupo_completado_sale_naranja_y_lo_dice(estado):
     sol = solidez(estado("E3"))
     assert sol["color"] == "naranja"
-    assert sol["etiqueta"] == "No concluyente · grupo completado"
+    assert sol["etiqueta"] == "No concluyente · completado con similares"
 
 
 def test_completado_con_senal_clara_sigue_naranja(estado):

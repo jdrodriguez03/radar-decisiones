@@ -1,7 +1,7 @@
 # Reglas del proyecto para asistentes de código
 
 ## Qué es esto
-Radar de Decisiones: app Streamlit para una convocatoria corporativa (Catch). Un directivo mueve 5 palancas de compensación (sal_dia_ini, aguinaldo_op, prima_vac_op, vales_op, rutas_x100); el motor compara contra 40 empresas reales y anónimas y la IA explica el cambio en 3 frases. No hay modelos predictivos: solo comparación. La demo en vivo es el día 16. Detalle en docs/proyecto.docx; rangos y constantes en config.py.
+Radar de Decisiones: app Streamlit para una convocatoria corporativa (Catch). Un directivo mueve 5 palancas de compensación (sal_dia_ini, aguinaldo_op, prima_vac_op, vales_op, rutas_x100); el motor compara contra 40 empresas reales y anónimas y la IA explica el cambio en 3 frases. No hay modelos predictivos: solo comparación. Rangos y constantes en config.py.
 
 ## Cómo se corre
 Siempre desde la raíz del repositorio, con Python 3.12 y el entorno .venv activo.

@@ -127,11 +127,18 @@ def plantilla(estado):
         f"las demás, {fmt_pct(resto['indicadores']['rot_anual'])}."
     )
 
-    medida = _pesos_texto(pesos["costo_medida_anual"])
+    # Un costo negativo es un ahorro (se bajó una prestación): se escribe en positivo, como en la pantalla
+    ahorro = pesos["costo_medida_anual"] < 0
+    medida = _pesos_texto(abs(pesos["costo_medida_anual"]))
     if pesos["costo_brecha_anual"] <= 0:
         segunda = (
             "Su empresa ya pierde igual o menos gente al año que esas empresas, por lo que no hay "
-            f"diferencia en pesos a su favor; la medida costaría {medida} al año."
+            f"diferencia en pesos a su favor; la medida {'representa un ahorro de' if ahorro else 'costaría'} {medida} al año."
+        )
+    elif ahorro:
+        segunda = (
+            f"Para su empresa, esa diferencia equivale a {_pesos_texto(pesos['costo_brecha_anual'])} "
+            f"al año en bajas, y la medida representa un ahorro de {medida} al año."
         )
     else:
         segunda = (

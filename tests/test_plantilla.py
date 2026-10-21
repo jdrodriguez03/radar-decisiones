@@ -67,3 +67,23 @@ def test_estado_inicial_dice_el_problema_en_personas():
     texto = plantilla(json.loads((RUTA_FIXTURES / "05_inicial.json").read_text(encoding="utf-8")))
     assert "742 personas" in texto and "297" in texto
 
+
+
+def test_un_costo_negativo_se_escribe_como_ahorro_sin_signo():
+    """Al bajar una prestación la medida ahorra: la plantilla no debe escribir «$-2.5 millones»."""
+    import copy
+
+    from ia.reglas import fallas_graves
+    from ia.validador import cifras_inventadas
+
+    base = json.loads(RUTA_EJEMPLO.read_text(encoding="utf-8"))
+    for brecha in (6_000_000, 0):
+        estado = copy.deepcopy(base)
+        estado["pesos"]["costo_medida_anual"] = -2_547_798
+        estado["pesos"]["costo_brecha_anual"] = brecha
+        texto = plantilla(estado)
+        assert "$-" not in texto and "-$" not in texto
+        assert "representa un ahorro de $2.5 millones de pesos al año" in texto
+        assert "costaría" not in texto
+        assert cifras_inventadas(texto, estado) == []
+        assert not fallas_graves(texto, estado)

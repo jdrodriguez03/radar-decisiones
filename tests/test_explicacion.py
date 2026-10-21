@@ -17,7 +17,7 @@ def test_pie_con_senal_y_n():
 def test_pie_avisa_si_el_grupo_se_completo():
     estado = cargar_fixture("03_salario")
     estado["grupo"]["completado"] = True
-    assert pie(estado).endswith("grupo completado con empresas similares")
+    assert pie(estado).endswith("completado con empresas similares")
 
 
 def test_pie_en_el_estado_inicial():

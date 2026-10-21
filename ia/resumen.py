@@ -62,28 +62,28 @@ INTRODUCCION = (
 )
 NOTA_SUPUESTOS = "* Supuestos definidos por la dirección; pueden modificarse en la herramienta."
 NOTA_TABLA = (
-    "Grupo: empresas que ya aplican el escenario; resto: las demás. Rotación anual: mediana de cada conjunto. "
-    "Costo de la medida y brecha (costo anual de la rotación adicional frente al grupo), en pesos al año; "
-    "las cifras entre paréntesis corresponden a un ahorro y un «-» indica que la compañía ya rota menos "
-    "que el grupo. (*) Grupo completado con empresas de perfil similar. En rojo: el grupo presenta una "
-    "rotación igual o superior a la del resto."
+    "Con / sin la medida: número de empresas que ya aplican el escenario y de las que no. Rotación anual: "
+    "mediana de cada conjunto. Costo de la medida y brecha (costo anual de la rotación adicional frente a las "
+    "empresas con la medida), en pesos al año; «Ahorro» indica que la medida reduce costos y un «-» que la "
+    "compañía ya rota menos que las empresas con la medida. (*) Completado con empresas de perfil similar. "
+    "En rojo: las empresas con la medida presentan una rotación igual o superior a la de las empresas sin ella."
 )
 METODOLOGIA = (
-    "El análisis se basa en la encuesta de rotación de 40 empresas, con datos anónimos. Para cada escenario, "
-    "el grupo reúne a las empresas que ya otorgan al menos el nivel seleccionado en cada prestación, y el "
-    "resto, a las demás. Las rotaciones corresponden a medianas. La solidez de la evidencia se determina con "
+    "El análisis se basa en la encuesta de rotación de 40 empresas, con datos anónimos. Para cada escenario "
+    "se comparan las empresas con la medida, que ya otorgan al menos el nivel seleccionado en cada "
+    "prestación, con las empresas sin la medida. Las rotaciones corresponden a medianas. La solidez de la evidencia se determina con "
     "la prueba de Mann-Whitney: clara (p < 0.05), débil (p < 0.15) o no concluyente. Cuando menos de cinco "
-    "empresas cumplen el escenario, el grupo se completa con empresas de perfil similar y el resultado se "
+    "empresas cumplen el escenario, se completan con empresas de perfil similar y el resultado se "
     "reporta como no concluyente. Los costos dependen de los supuestos indicados, definidos por la dirección "
     "y modificables en la herramienta."
 )
 FUENTE = "Fuente: encuesta de rotación de 40 empresas, datos anónimos"
 AVISO_ROTAN_MAS = (
-    "Las empresas del grupo presentan una rotación igual o superior a la del resto; no se observa una "
+    "Las empresas con la medida presentan una rotación igual o superior a la de las empresas sin ella; no se observa una "
     "ventaja asociada a esta medida."
 )
 AVISO_COMPLETADO = (
-    "Pocas empresas cumplen esta combinación, por lo que el grupo se completó con empresas de perfil "
+    "Pocas empresas cumplen esta combinación, por lo que se completaron con empresas de perfil "
     "similar. El resultado debe tomarse como referencia."
 )
 AVISO_NO_CONCLUYENTE = (
@@ -215,12 +215,12 @@ def _rasgo(rasgo):
 
     motor/en_comun.py devuelve las DIFERENCIAS más grandes entre grupo y resto, que pueden ir en
     cualquier sentido ("0 de 5" frente a "13 de 33"): por eso se dice «diferencia», nunca «en común».
-    'motivo de baja: estudios' -> 'motivo de baja por estudios (50% en el grupo, frente a 10% en el resto)'
+    'motivo de baja: estudios' -> 'motivo de baja por estudios (50% con la medida, frente a 10% sin ella)'
     """
     texto = rasgo.get("texto", "")
     grupo, resto = _valor_rasgo(texto, rasgo.get("grupo")), _valor_rasgo(texto, rasgo.get("resto"))
     nombre = texto.replace("motivo de baja: ", "motivo de baja por ", 1)
-    return f"{nombre} ({grupo} en el grupo, frente a {resto} en el resto)"
+    return f"{nombre} ({grupo} con la medida, frente a {resto} sin ella)"
 
 
 def _tipo(estado):
@@ -249,7 +249,7 @@ def fila(numero, estado):
     dir_, sol = direccion(estado), solidez(estado)
     rot_g, rot_r = _rotaciones(estado)
     medida, brecha = pesos.get("costo_medida_anual"), pesos.get("costo_brecha_anual")
-    texto_medida = "-" if medida is None else (f"({_millones(medida)})" if medida < 0 else _millones(medida))
+    texto_medida = "-" if medida is None else (f"Ahorro {_millones(medida)}" if medida < 0 else _millones(medida))
     texto_brecha = "-" if not brecha else _millones(brecha)
     celdas = [
         str(numero), nombre, f"{grupo['n']} / {resto['n']}" + (" *" if grupo.get("completado") else ""),
@@ -282,15 +282,15 @@ def detalle(numero, escenario):
             ("Empresas comparadas", f"{grupo.get('n', 0)}"),
             ("Rotación de la compañía", f"{rot:.0%}" if rot is not None else "-"),
             ("Costo anual de la medida", "-"),
-            ("Brecha anual por rotación", "-"),
+            ("Costo anual de la brecha", "-"),
         ]
         interpretacion = "Situación actual de la compañía, sin cambios en las prestaciones."
     elif tipo == "sin_comparacion":
         cifras = [
-            ("Empresas: grupo / resto", f"{grupo.get('n', 0)} / {resto.get('n', 0)}"),
-            ("Rotación: grupo / resto", "-"),
+            ("Empresas: con / sin la medida", f"{grupo.get('n', 0)} / {resto.get('n', 0)}"),
+            ("Rotación: con / sin la medida", "-"),
             ("Costo anual de la medida", "-"),
-            ("Brecha anual por rotación", "-"),
+            ("Costo anual de la brecha", "-"),
         ]
         consideraciones.append(("", (
             f"No es posible comparar: {grupo.get('n', 0)} empresas con dato cumplen esta combinación y "
@@ -302,11 +302,11 @@ def detalle(numero, escenario):
         rot_g, rot_r = _rotaciones(estado)
         medida, brecha = pesos.get("costo_medida_anual"), pesos.get("costo_brecha_anual")
         cifras = [
-            ("Empresas: grupo / resto", f"{grupo['n']} / {resto['n']}"),
-            ("Rotación: grupo / resto", f"{rot_g:.0%} / {rot_r:.0%}"),
+            ("Empresas: con / sin la medida", f"{grupo['n']} / {resto['n']}"),
+            ("Rotación: con / sin la medida", f"{rot_g:.0%} / {rot_r:.0%}"),
             ("Costo anual de la medida",
              "-" if medida is None else (f"Ahorro de {_millones(medida)}" if medida < 0 else _millones(medida))),
-            ("Brecha anual por rotación", "Sin brecha" if not brecha else _millones(brecha)),
+            ("Costo anual de la brecha", "Sin brecha" if not brecha else _millones(brecha)),
         ]
         if sol:
             solidez_texto, color = sol["etiqueta"], sol["color"]
@@ -319,7 +319,7 @@ def detalle(numero, escenario):
             consideraciones.append(("", AVISO_NO_CONCLUYENTE))
         interpretacion = explicacion or SIN_EXPLICACION
     for rasgo in rasgos_utiles(estado)[:2] if tipo != "actual" else []:
-        consideraciones.append(("", f"Diferencia con el resto: {_rasgo(rasgo)}."))
+        consideraciones.append(("", f"Diferencia con las empresas sin la medida: {_rasgo(rasgo)}."))
     return {
         "numero": numero,
         "titulo": combinacion_larga(estado),
@@ -361,7 +361,7 @@ def contenido(escenarios, fecha):
             ("Costo mensual por ruta *", supuesto("costo_ruta_mensual")),
         ],
         "introduccion": INTRODUCCION,
-        "encabezados": ["N.º", "Escenario", "Grupo / resto", "Rotación anual", "Solidez", "Costo medida", "Brecha"],
+        "encabezados": ["N.º", "Escenario", "Con / sin", "Rotación anual", "Solidez", "Costo medida", "Brecha"],
         "filas": [fila(i, e["estado"]) for i, e in enumerate(escenarios, 1)],
         "detalles": [detalle(i, e) for i, e in enumerate(escenarios, 1)],
     }

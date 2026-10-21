@@ -1,105 +1,126 @@
 # Radar de Decisiones
 
-> ## ⚠️ Antes de tocar nada, lee la guía rápida
-> **[`docs/00_LEER_PRIMERO_guia_rapida_del_repositorio.docx`](docs/00_LEER_PRIMERO_guia_rapida_del_repositorio.docx)**: cómo está organizado el repositorio, cómo arrancar en VS Code, cómo se hacen los commits y cómo se revisa y se sube el trabajo. Es obligatoria para los cuatro y hay que leerla completa, con calma.
+Herramienta para que un directivo de recursos humanos pruebe una decisión de compensación y vea, en segundos, qué muestran las empresas que ya la tomaron. No predice: compara contra 40 empresas reales y anonimizadas de una encuesta bimestral, calcula el costo en pesos y explica el resultado en tres oraciones escritas por IA, con cada cifra revisada antes de mostrarse.
 
-Herramienta donde un directivo mueve una decisión de compensación y ve qué les pasa a las empresas reales que ya la tomaron. **No predice**: compara contra 40 empresas anónimas de la encuesta, y una IA explica el resultado en 3 frases.
+Proyecto desarrollado para el concurso de Catch Consulting (México) con estudiantes de la Universidad Externado de Colombia, octubre de 2026.
 
-Proyecto del equipo para la convocatoria Catch. La demo en vivo es el día 16.
+## Características
 
-## Cómo funciona
+- **Cinco palancas de compensación** (salario diario inicial, aguinaldo, prima vacacional, vales de despensa y rutas de transporte) que recalculan todo al instante.
+- **Comparación contra empresas reales**: las que ya ofrecen ese nivel frente al resto, en rotación anual, bajas en los primeros tres meses y ausentismo.
+- **Costos en pesos** de la medida y de la rotación actual, con supuestos que el directivo puede ajustar.
+- **Explicación con IA** que nunca muestra una cifra que no esté en el cálculo, con respaldo automático si el modelo tarda o no hay internet.
+- **Semáforo de evidencia** que indica qué tan sólida es la diferencia observada.
+- **Escenarios guardados** que se comparan lado a lado y se descargan como informe PDF para el comité.
+- **Modo sin conexión** para presentar sin depender de internet ni de la API.
 
-1. El directivo mueve una o más de las **5 palancas**: salario diario inicial, aguinaldo, prima vacacional, vales de despensa y rutas de transporte.
-2. El **motor** (`motor/`) busca las empresas que ya están en ese nivel y las compara con el resto en rotación anual, bajas en menos de 3 meses y ausentismo injustificado.
-3. La **IA** (`ia/`) explica la diferencia en 3 frases, usando solo cifras que están en el resultado. Si tarda más de 4 segundos, se muestra un texto de respaldo.
-4. La **pantalla** (`app.py` y `ui/`) muestra todo en Streamlit.
+## Contexto
 
-El motor entrega un JSON con una forma fija (ver `contrato/ejemplo.json`); ese acuerdo permite que cada persona trabaje su pieza sin esperar a las demás.
+Catch Consulting, firma de consultoría de México, organizó un concurso privado para estudiantes de la Universidad Externado de Colombia. Entregó a los equipos una base bimestral de recursos humanos y operaciones industriales de empresas reales y planteó un reto concreto: construir una herramienta que cualquier directivo pudiera usar sin instrucciones y que respondiera en vivo, durante la presentación, a los cambios que él mismo propusiera. El equipo tuvo quince días para diseñarla, construirla y probarla, y la presentó en una demostración en vivo de diez minutos. Catch autorizó publicar el proyecto completo, con sus datos.
+
+## Requisitos
+
+- Python 3.12
+- Una llave de API de Anthropic, opcional. Sin ella la aplicación funciona igual y solo pierde la redacción en vivo de escenarios nuevos (ver [Configuración](#configuración)).
 
 ## Instalación
 
-Necesitas Python 3.12 y git. Desde la carpeta del repositorio:
+En Windows basta con hacer doble clic en `install.bat`, que crea el entorno `.venv` e instala las dependencias. En Mac o Linux:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate        # Windows (Git Bash): source .venv/Scripts/activate
+git clone https://github.com/jdrodriguez03/radar-decisiones.git
+cd radar-decisiones
+python3.12 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-cp .streamlit/secrets.toml.example .streamlit/secrets.toml   # y poner la llave real
 ```
 
-La llave de la API va solo en `.streamlit/secrets.toml`, que git ignora. Nunca se sube.
+## Configuración
 
-## Cómo se corre
+La explicación en vivo usa un modelo de Claude y necesita una llave propia. Se crea en [console.anthropic.com](https://console.anthropic.com), en *API Keys*, y conviene fijar un límite de gasto mensual en *Limits*. Luego se copia el archivo de ejemplo y se reemplaza `sk-ant-xxxxxxxx` por la llave:
 
-Siempre desde la raíz del repositorio, con el entorno `.venv` activo:
+```bash
+cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+```
 
-| Comando | Qué hace |
-| --- | --- |
-| `streamlit run app.py` | Abre la app |
-| `bash scripts/demo_sin_internet.sh` (o doble clic en `scripts\demo_sin_internet.bat`) | Abre la app en MODO_DEMO: nunca llama a la API, solo caché o plantilla. Para cuando falla el wifi |
-| `streamlit run sandbox/c_resumen.py` | Prueba el PDF para el comité con los pasos del caché, sin abrir la app completa |
-| `pytest` | Corre las pruebas |
-| `ruff check .` | Revisa el estilo |
+`secrets.toml` está excluido de git y nunca debe subirse. La llave también puede ir en la variable de entorno `ANTHROPIC_API_KEY`, que es lo indicado si la aplicación se publica en un servidor o en Streamlit Community Cloud.
 
-`pytest` y `ruff check .` también corren solos en cada PR (CI). Si salen en rojo, el PR no se puede aprobar.
+Los demás ajustes viven en `config.py`, entre ellos el modelo (`MODELO_IA`) y los tiempos límite de la IA. Los supuestos de costo por defecto, $15,000 por baja y $35,000 mensuales por ruta, están en `data/processed/supuestos.json` y también se pueden cambiar desde la aplicación.
 
-**Resumen para el comité (PDF):** en la app, guarde los escenarios con «Guardar escenario» y pulse
-«Descargar resumen (PDF)». Baja un informe tamaño carta para el comité: situación actual de la
-compañía, tabla de escenarios y detalle de cada uno. Se genera en el mismo computador, sin internet ni
-IA, y cada cifra pasa por el validador antes de imprimirse. El estilo (colores, letras, textos fijos) está
-en el bloque «Estilo del informe» de `ia/resumen.py`. Usa la librería `fpdf2`; si después de un
-`git pull` el botón no aparece, corra `pip install -r requirements.txt`.
+## Uso
 
-## Los datos
+Con el entorno activo (en Windows, `.venv\Scripts\activate`):
+
+```bash
+streamlit run app.py
+```
+
+La aplicación se abre en `http://localhost:8501`. Una sesión típica sigue este orden:
+
+1. **Elegir la empresa.** En la columna izquierda se escoge una de las 40 de la encuesta, o se captura una propia en «Mi empresa» con su plantilla, su rotación mensual y sus cinco prestaciones. Las marcadas con estrella son las que mejor ilustran la herramienta.
+2. **Mover una prestación** con los botones − y + o el control deslizante. Las cifras del centro cambian al instante.
+3. **Leer el comparativo.** La tabla del centro muestra tres columnas: «Situación actual», «Empresas con las medidas» y «Empresas sin las medidas». Debajo aparecen el costo anual de la medida (o el ahorro, si se bajó una prestación) y el costo anual de la brecha de rotación. En «Modificación de supuestos», el botón ⚙ cambia el costo por baja y el costo por ruta.
+4. **Pulsar «Explicar»** para obtener las tres oraciones. Debajo, una gráfica ubica la rotación de la empresa frente a las empresas con y sin la medida, y el semáforo de evidencia dice si las que aplican la medida rotan menos o más y qué tan sólida es esa diferencia.
+5. **Guardar escenarios** para compararlos y, con el botón que aparece bajo «Guardar escenario», **descargar el resumen en PDF** con la situación de la empresa, la tabla de escenarios y el detalle de cada uno.
+
+«↻ Restablecer» devuelve las palancas al valor real de la empresa.
+
+Para presentar sin internet se abre `scripts\demo_sin_internet.bat` (o `bash scripts/demo_sin_internet.sh`). En ese modo la aplicación no llama a la API y usa las explicaciones precalculadas o la plantilla. Antes de una sesión importante, `python scripts/verificar_demo.py` comprueba en menos de un minuto que todo esté en orden.
+
+## Cómo funciona
+
+Al mover una palanca, el motor separa a las demás empresas en dos conjuntos: las que ya ofrecen ese nivel o más (con la medida) y las demás (sin la medida). Si el primero tiene menos de cinco empresas se completa con las cinco más parecidas y la pantalla lo indica. Se comparan medianas y la solidez de la diferencia en rotación sale de una prueba de Mann-Whitney: clara con p < 0.05, débil con p < 0.15 y no concluyente en otro caso.
+
+El resultado del motor es un JSON con estructura fija, validado contra `contrato/modelo.py`. La IA recibe solo ese JSON, y su texto pasa por un validador que descarta cualquier número que no aparezca ahí. Si el modelo no empieza a responder en 4 segundos, no termina en 8 o el texto no pasa la revisión, se muestra una explicación de plantilla con las mismas cifras.
+
+## Estructura del proyecto
+
+```
+radar-decisiones/
+├── app.py           # pantalla principal, une todas las piezas
+├── config.py        # rutas, rangos de las palancas, umbrales y modelo de IA
+├── motor/           # datos, grupo y resto, prueba estadística y costos
+├── ia/              # prompts, llamada al modelo, plantilla, validador, caché y PDF
+├── ui/              # una pieza de pantalla por archivo
+├── contrato/        # estructura del JSON, ejemplo y casos de prueba
+├── data/
+│   ├── raw/         # bases de la encuesta en Excel
+│   └── processed/   # parquet, supuestos y explicaciones precalculadas
+├── scripts/         # preparación de datos, caché y verificaciones
+├── sandbox/         # mini aplicaciones para probar cada pieza
+├── tests/           # pruebas automáticas
+└── docs/            # documentación del proyecto y de los datos
+```
+
+## Datos
+
+La base proviene de una encuesta bimestral de recursos humanos y operaciones, con siete bimestres entre julio de 2024 y agosto de 2025. Las empresas aparecen como «COMPAÑIA N». Los datos se procesan siempre con scripts y nunca a mano:
 
 ```
 BASE_HISTORICA.xlsx → scripts/historica_a_reducida.py → BASE_REDUCIDA_v2.xlsx
-                    → scripts/preparar_datos.py → data/processed/empresas.parquet → la app
+                    → scripts/preparar_datos.py       → empresas.parquet
 ```
 
-- Las dos bases en Excel viven en `data/raw/` y vienen anonimizadas. El repositorio es privado.
-- La v2 no se edita a mano: si cambia una regla, se cambia el script. Para comprobar que lo reproduce: `python scripts/historica_a_reducida.py --comparar data/raw/BASE_REDUCIDA_v2.xlsx`.
-- Qué se escogió de la histórica y cómo se codificó cada columna: [`docs/diccionario_reduccion.md`](docs/diccionario_reduccion.md).
-- Para regenerar los datos de la app: `python scripts/preparar_datos.py`.
+`python scripts/historica_a_reducida.py --comparar data/raw/BASE_REDUCIDA_v2.xlsx` comprueba que la base reducida se reproduce exactamente desde la histórica. El significado de cada columna está en `docs/diccionario_reduccion.md`.
 
-## Estructura
+## Pruebas
 
-| Carpeta | Qué hay |
-| --- | --- |
-| `motor/` | Cálculo: carga datos, compara grupos, arma el JSON, costos |
-| `ia/` | Prompts, llamada al modelo, texto de respaldo y validación de cifras |
-| `ui/` | Una pieza de pantalla por archivo |
-| `contrato/` | La forma del JSON, un ejemplo y los casos de prueba |
-| `data/` | `raw/` con las bases en Excel; `processed/` con parquet, supuestos y caché |
-| `scripts/` | Tareas que se corren una vez (preparar datos, generar caché, verificar la demo) |
-| `sandbox/` | Mini-apps para probar tu pieza sola |
-| `tests/` | Pruebas automáticas |
-| `docs/` | Documentos del proyecto |
-| `.github/` | CI, dueños de cada archivo y plantilla de PR |
+```bash
+pytest
+ruff check .
+```
 
-`config.py` en la raíz guarda las rutas, los rangos de las palancas y los umbrales del motor. Todo el código importa de ahí; nadie escribe rutas a mano.
-
-## Cómo trabajamos
-
-- **No se sube directo a `main`.** Cada persona trabaja en su rama (`a/e2-motor`: letra del dueño, bloque y tema) y abre un PR.
-- **Revisión conjunta cada dos días**: el equipo revisa los PR en llamada, los otros tres aprueban y el CI está en verde antes de unir.
-- **Cada archivo tiene dueño** (`.github/CODEOWNERS`). Solo se edita lo propio.
-- **Commits**: `área: qué hiciste`, en presente (`motor:`, `ia:`, `ui:`, `data:`, `scripts:`, `tests:`, `docs:`, `chore:`, `fix:`).
-- Las firmas de las funciones públicas están congeladas. Los archivos con `raise NotImplementedError` son esqueleto: se llenan sin cambiar la firma.
+Ninguna prueba llama a la API. Las dos corren en GitHub Actions con cada pull request y con cada cambio en `main`.
 
 ## Equipo
 
-| Persona | Rol | Cuida |
-| --- | --- | --- |
-| Aleja (`alejac-beep`) | A | Datos y motor |
-| Gaby (`gabriela708`) | B | Pantalla |
-| Julian (`jdrodriguez03`) | C | IA y repositorio |
-| Juanes (`juanesaacosta26`) | D | Pesos, soporte y pruebas |
+| Integrante | Rol |
+| --- | --- |
+| Alejandra Cortés ([@AlejaCortes](https://github.com/AlejaCortes)) | Datos y motor de comparación |
+| Gabriela Chisaba ([@gabriela708](https://github.com/gabriela708)) | Diseño y pantalla |
+| Julián David Rodríguez ([@jdrodriguez03](https://github.com/jdrodriguez03)) | Inteligencia artificial y repositorio |
+| Juan Esteban Acosta ([@juanesaacosta26](https://github.com/juanesaacosta26)) | Costos, soporte de usuario y pruebas |
 
-## Más información
+## Licencia
 
-- `docs/00_LEER_PRIMERO_guia_rapida_del_repositorio.docx`: la guía de uso del repositorio (obligatoria).
-- `docs/proyecto.docx`: la descripción completa del proyecto.
-- `docs/plan_15_dias.docx` y `docs/guia_dia_por_dia.docx`: el plan y qué hace cada persona cada día.
-- `docs/decisiones.md`: decisiones tomadas y pendientes.
-- `CLAUDE.md`: reglas para los asistentes de código.
+El código está bajo licencia [MIT](LICENSE). Los datos de `data/` pertenecen a la empresa dueña de la encuesta y se publican con su autorización solo para consultar y reproducir este proyecto.

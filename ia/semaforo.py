@@ -59,7 +59,7 @@ def direccion(estado):
     return {
         "rotan_mas": rotan_mas,
         "titulo": "⚠ Rotan más" if rotan_mas else "↓ Rotan menos",
-        "detalle": f"{n} empresas que lo hacen: {rot_grupo:.0%} al año contra {rot_resto:.0%} del resto",
+        "detalle": f"{n} empresas que lo hacen: {rot_grupo:.0%} al año contra {rot_resto:.0%} de las que no",
     }
 
 
@@ -89,7 +89,7 @@ def solidez(estado):
     if rotan_mas and color != "naranja":
         etiqueta += " de que rotan más"
     if completado:
-        etiqueta += " · grupo completado"
+        etiqueta += " · completado con similares"
     return {"color": color, "nivel": NIVELES[color], "etiqueta": etiqueta}
 
 

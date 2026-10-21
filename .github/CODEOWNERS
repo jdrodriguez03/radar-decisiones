@@ -7,11 +7,11 @@
 /ui/controles.py                 @gabriela708
 /ui/comparativo.py               @gabriela708
 
-/motor/                          @alejac-beep
+/motor/                          @AlejaCortes
 /motor/pesos.py                  @juanesaacosta26
-/scripts/preparar_datos.py       @alejac-beep
-/scripts/verificar_demo.py       @alejac-beep
-/ui/escenarios.py                @alejac-beep
+/scripts/preparar_datos.py       @AlejaCortes
+/scripts/verificar_demo.py       @AlejaCortes
+/ui/escenarios.py                @AlejaCortes
 
 /ia/                             @jdrodriguez03
 /ui/explicacion.py               @jdrodriguez03
